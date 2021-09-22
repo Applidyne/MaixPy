@@ -118,7 +118,7 @@ typedef struct _sensor sensor_t;
 typedef struct _sensor {
     uint16_t chip_id;           // Sensor ID.
     uint8_t  slv_addr;          // Sensor I2C slave address.
-    uint8_t choice_dev;             // choice sensor device.
+    uint8_t  choice_dev;        // choice sensor device.
     uint16_t gs_bpp;            // Grayscale bytes per pixel.
     uint32_t hw_flags;          // Hardware flags (clock polarities/hw capabilities)
     bool     reset_set;         // reset called

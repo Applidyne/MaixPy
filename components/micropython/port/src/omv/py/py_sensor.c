@@ -105,7 +105,7 @@ static mp_obj_t py_sensor_snapshot(size_t n_args, const mp_obj_t *args, mp_map_t
         mp_raise_TypeError("not found sensor");
         return mp_const_none;
     }
-    
+
     // Sanity checks
     PY_ASSERT_TRUE_MSG((sensor.pixformat != PIXFORMAT_JPEG), "Operation not supported on JPEG");
     int ret = sensor.snapshot(&sensor, (image_t *)py_image_cobj(image), NULL, update_jb);
@@ -653,6 +653,8 @@ STATIC const mp_map_elem_t globals_dict_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_OV2640),       MP_OBJ_NEW_SMALL_INT(OV2640_ID)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_OV7725),       MP_OBJ_NEW_SMALL_INT(OV7725_ID)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_MT9V034),      MP_OBJ_NEW_SMALL_INT(MT9V034_ID)},
+//    {MP_OBJ_NEW_QSTR(MP_QSTR_MT9V022),      MP_OBJ_NEW_SMALL_INT(MT9V022_CHIP_ID_REV_3)},
+//    {MP_OBJ_NEW_QSTR(MP_QSTR_MT9V111),      MP_OBJ_NEW_SMALL_INT(MT9V111_CHIP_ID)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_LEPTON),       MP_OBJ_NEW_SMALL_INT(LEPTON_ID)},
 
     // Special effects

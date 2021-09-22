@@ -13,6 +13,8 @@
 #include "gc0328.h"
 #include "gc2145.h"
 #include "mt9d111.h"
+#include "mt9v111.h"
+#include "mt9v022.h"
 #include "py/mpprint.h"
 #include "sysctl.h"
 #include "fpioa.h"
@@ -275,6 +277,28 @@ int cambus_scan_mt9d111(void)
     }
     return id;
 }
+
+// int cambus_scan_mt9v111(void)
+// {
+//     uint16_t id = mt9v111_read_id(i2c_device);
+//     if (id != MT9V111_CHIP_ID)
+//     {
+//         // mp_printf(&mp_plat_print, "error mt9v111 detect, ret id is 0x%x\r\n", id);
+//         return 0;
+//     }
+//     return id;
+// }
+
+// int cambus_scan_mt9v022(void)
+// {
+//     uint16_t id = mt9v022_read_id(i2c_device);
+//     if ( (id != MT9V022_CHIP_ID_REV_1 ) && (id != MT9V022_CHIP_ID_REV_3 ) )
+//     {
+//         // mp_printf(&mp_plat_print, "error mt9v022 detect, ret id is 0x%x\r\n", id);
+//         return 0;
+//     }
+//     return id;
+// }
 
 int cambus_readb(uint8_t slv_addr, uint16_t reg_addr, uint8_t *reg_data)
 {

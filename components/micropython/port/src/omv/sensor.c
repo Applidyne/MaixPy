@@ -23,6 +23,8 @@
 #include "gc0328.h"
 #include "gc2145.h"
 #include "mt9d111.h"
+#include "mt9v111.h"
+#include "mt9v022.h"
 #include "ov7740.h"
 #include "mphalport.h"
 #include "ov3660.h"
@@ -280,7 +282,7 @@ void sensor_init0()
 }
 
 //-------------------------------Monocular--------------------------------------
-int sensro_ov_detect(sensor_t *sensor)
+int sensor_ov_detect(sensor_t *sensor)
 {
     int init_ret = 0;
     /* Reset the sensor */
@@ -357,14 +359,31 @@ int sensro_ov_detect(sensor_t *sensor)
     else
     {
         // Read ON semi sensor ID.
-        cambus_readb(sensor->slv_addr, ON_CHIP_ID, (uint8_t *)&sensor->chip_id);
-        if (sensor->chip_id == MT9V034_ID)
+        // Set the default I2C address for an MT9V022 sensor.
+        sensor->slv_addr = MT9V022_CONFIG_I2C_ADDRESS;
+        cambus_readw(sensor->slv_addr, MT9V022_CHIP_VERSION,
+                                       &sensor->chip_id);
+        mp_printf(&mp_plat_print, "[MAIXPY]: cambus addr 0x%x => ID 0x%x\n",
+                                  sensor->slv_addr,
+                                  sensor->chip_id);
+        if ( (sensor->chip_id == MT9V022_CHIP_ID_REV_1)
+             ||
+             (sensor->chip_id == MT9V022_CHIP_ID_REV_3)
+             ||
+             (sensor->chip_id == MT9V034_CHIP_ID ) ) /* Same as MT9V022 in different package? */
         {
-            /*set MT9V034 xclk rate*/
-            /*mt9v034_init*/
+            mp_printf(&mp_plat_print, "[MAIXPY]: found MT9V022\n");
+            dvp_set_xclk_rate(MT9V022_SYSCLK_FREQ_DEF); /* 26.6MHz Max */
+            init_ret = mt9v022_init(sensor);
+        }
+        else if (sensor->chip_id == MT9V111_CHIP_ID)
+        {
+            mp_printf(&mp_plat_print, "[MAIXPY]: found MT9V111\n");
+            dvp_set_xclk_rate(MT9V111_SYSCLK_FREQ_DEF); /* 24-27MHz */
+            init_ret = mt9v111_init(sensor);
         }
         else
-        { // Read OV sensor ID.
+        { // Read OV sensor ID. This looks like a duplication of cambus_scan ?
             uint8_t tmp;
             uint8_t reg_width = cambus_reg_width();
             uint16_t reg_addr, reg_addr2;
@@ -415,6 +434,8 @@ int sensro_ov_detect(sensor_t *sensor)
                 break;
             default:
                 // Sensor is not supported.
+                mp_printf(&mp_plat_print, "[MAIXPY]: found chip id %x\n",
+                                          sensor->chip_id );
                 return -3;
             }
         }
@@ -428,7 +449,7 @@ int sensro_ov_detect(sensor_t *sensor)
     return 0;
 }
 
-uint16_t sensro_gc_scan()
+uint16_t sensor_gc_scan()
 {
     uint16_t id = 0;
     if (cambus_scan_gc0328())
@@ -442,7 +463,7 @@ uint16_t sensro_gc_scan()
     return id;
 }
 
-int sensro_gc_detect(sensor_t *sensor, bool pwnd)
+int sensor_gc_detect(sensor_t *sensor, bool pwnd)
 {
     uint16_t id = 0;
     // mp_printf(&mp_plat_print, "[MAIXPY]: find gc sensor\n");
@@ -453,7 +474,7 @@ int sensro_gc_detect(sensor_t *sensor, bool pwnd)
     DCMI_RESET_HIGH();
     mp_hal_delay_ms(10);
 
-    int init_ret = 0;
+    //int init_ret = 0;
     /* Reset the sensor */
     DCMI_RESET_HIGH();
     mp_hal_delay_ms(10);
@@ -461,7 +482,7 @@ int sensro_gc_detect(sensor_t *sensor, bool pwnd)
     mp_hal_delay_ms(30);
 
     /* Probe the ov sensor */
-    id = sensro_gc_scan();
+    id = sensor_gc_scan();
     if (id == 0)
     {
         /* Sensor has been held in reset,
@@ -478,7 +499,7 @@ int sensro_gc_detect(sensor_t *sensor, bool pwnd)
         mp_hal_delay_ms(30);
 
         /* Probe again to set the slave addr */
-        id = sensro_gc_scan();
+        id = sensor_gc_scan();
         if (id == 0)
         {
             sensor->pwdn_pol = ACTIVE_LOW;
@@ -490,7 +511,7 @@ int sensro_gc_detect(sensor_t *sensor, bool pwnd)
             DCMI_RESET_HIGH();
             mp_hal_delay_ms(30);
 
-            id = sensro_gc_scan();
+            id = sensor_gc_scan();
             if (id == 0)
             {
                 sensor->reset_pol = ACTIVE_HIGH;
@@ -503,7 +524,7 @@ int sensro_gc_detect(sensor_t *sensor, bool pwnd)
                 DCMI_RESET_LOW();
                 mp_hal_delay_ms(30);
 
-                id = sensro_gc_scan();
+                id = sensor_gc_scan();
                 if (id == 0)
                 {
                     //should do something?
@@ -540,7 +561,8 @@ int sensro_gc_detect(sensor_t *sensor, bool pwnd)
     }
     return 0;
 }
-int sensro_mt_detect(sensor_t *sensor, bool pwnd)
+
+int sensor_mt_detect(sensor_t *sensor, bool pwnd)
 {
     if (pwnd)
         DCMI_PWDN_LOW();
@@ -564,6 +586,7 @@ int sensro_mt_detect(sensor_t *sensor, bool pwnd)
     }
     return 0;
 }
+
 int sensor_init_dvp(mp_int_t freq, bool default_freq)
 {
     int init_ret = 0;
@@ -571,12 +594,12 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
 
     sensor_load_config(&sensor_config);
 
-    fpioa_set_function(sensor_config.cmos_pclk, FUNC_CMOS_PCLK);
-    fpioa_set_function(sensor_config.cmos_xclk, FUNC_CMOS_XCLK);
-    fpioa_set_function(sensor_config.cmos_href, FUNC_CMOS_HREF);
-    fpioa_set_function(sensor_config.cmos_pwdn, FUNC_CMOS_PWDN);
+    fpioa_set_function(sensor_config.cmos_pclk,  FUNC_CMOS_PCLK);
+    fpioa_set_function(sensor_config.cmos_xclk,  FUNC_CMOS_XCLK);
+    fpioa_set_function(sensor_config.cmos_href,  FUNC_CMOS_HREF);
+    fpioa_set_function(sensor_config.cmos_pwdn,  FUNC_CMOS_PWDN);
     fpioa_set_function(sensor_config.cmos_vsync, FUNC_CMOS_VSYNC);
-    fpioa_set_function(sensor_config.cmos_rst, FUNC_CMOS_RST);
+    fpioa_set_function(sensor_config.cmos_rst,   FUNC_CMOS_RST);
 
     // fpioa_set_function(41, FUNC_SCCB_SCLK);
     // fpioa_set_function(40, FUNC_SCCB_SDA);
@@ -608,18 +631,18 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
     bool limit = sensor.choice_dev != 0;
 
     cambus_set_writeb_delay(10);
-    if ((limit == false || sensor.choice_dev == 1) && 0 == sensro_ov_detect(&sensor))
+    if ((limit == false || sensor.choice_dev == 1) && 0 == sensor_ov_detect(&sensor))
     {
         // find ov sensor
         mp_printf(&mp_plat_print, "[MAIXPY]: find ov sensor\n");
         pwdn_lock = 1;
     }
-    else if ((limit == false || sensor.choice_dev == 2) && 0 == sensro_gc_detect(&sensor, true))
-    // if ((limit == false || sensor.choice_dev == 2) && 0 == sensro_gc_detect(&sensor, true))
+    else if ((limit == false || sensor.choice_dev == 2) && 0 == sensor_gc_detect(&sensor, true))
+    // if ((limit == false || sensor.choice_dev == 2) && 0 == sensor_gc_detect(&sensor, true))
     {
         cambus_set_writeb_delay(2);
     }
-    else if ( (limit == false || sensor.choice_dev == 3) && 0 == sensro_mt_detect(&sensor, true))
+    else if ( (limit == false || sensor.choice_dev == 3) && 0 == sensor_mt_detect(&sensor, true))
     {
         //find mt sensor
         mp_printf(&mp_plat_print, "[MAIXPY]: find mt sensor\n");
@@ -655,6 +678,7 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
     if (pwdn_lock) (sensor.pwdn_pol == ACTIVE_HIGH) ? (DCMI_PWDN_LOW()) : (DCMI_PWDN_HIGH());
     return init_ret;
 }
+
 int sensor_init_irq()
 {
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 0);
@@ -917,7 +941,7 @@ int binocular_sensor_reset(mp_int_t freq)
     else
     {
         DCMI_PWDN_HIGH();
-        if (0 == sensro_gc_detect(&sensor, false))
+        if (0 == sensor_gc_detect(&sensor, false))
         {
             //find gc0328 sensor
             mp_printf(&mp_plat_print, "[MAIXPY]: sensor1 find gc0328\n");
@@ -929,7 +953,7 @@ int binocular_sensor_reset(mp_int_t freq)
             return -1;
         }
         DCMI_PWDN_LOW();
-        if (0 == sensro_gc_detect(&sensor, false))
+        if (0 == sensor_gc_detect(&sensor, false))
         {
             //find gc0328 sensor
             mp_printf(&mp_plat_print, "[MAIXPY]: sensor2 find gc0328\n");
