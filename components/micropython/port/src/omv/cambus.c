@@ -119,7 +119,7 @@ int sccb_i2c_read_byte(int8_t i2c, uint8_t addr, uint16_t reg, uint8_t reg_len, 
     return 0;
 }
 
-int sccb_i2c_recieve_byte(int8_t i2c, uint8_t addr, uint8_t *data, uint16_t timeout_ms)
+int sccb_i2c_receive_byte(int8_t i2c, uint8_t addr, uint8_t *data, uint16_t timeout_ms)
 {
     if (i2c == -2)
     {
@@ -143,9 +143,9 @@ static uint8_t sccb_reg_width = 8;
 static int8_t i2c_device = -2;
 
 /**
- * 
+ *
  * @i2c_type 0: sccb, 1:hardware i2c, 2:software i2c
- * 
+ *
  */
 int cambus_init(uint8_t reg_wid, int8_t i2c, int8_t pin_clk, int8_t pin_sda, uint8_t gpio_clk, uint8_t gpio_sda)
 {
@@ -165,10 +165,13 @@ int cambus_read_id(uint8_t addr, uint16_t *manuf_id, uint16_t *device_id)
     int ret = 0;
 
     // sccb_i2c_write_byte(i2c_device, addr, 0xFF, sccb_reg_width, 0x01, 10);
+
+    // On OV2640 this is reading 0x7FA2
     ret |= sccb_i2c_read_byte(i2c_device, addr, 0x1C, sccb_reg_width, &tmp, 100);
     *manuf_id = tmp << 8;
     ret |= sccb_i2c_read_byte(i2c_device, addr, 0x1D, sccb_reg_width, &tmp, 100);
     *manuf_id |= tmp;
+    // On OV2640 this is reading 0x2641
     ret |= sccb_i2c_read_byte(i2c_device, addr, 0x0A, sccb_reg_width, &tmp, 100);
     *device_id = tmp << 8;
     ret |= sccb_i2c_read_byte(i2c_device, addr, 0x0B, sccb_reg_width, &tmp, 100);
@@ -184,6 +187,7 @@ int cambus_read16_id(uint8_t addr, uint16_t *manuf_id, uint16_t *device_id)
     uint8_t tmp = 0;
     int ret = 0;
     //TODO: 0x300A 0x300B maybe just for OV3660
+    // On OV5642 this reads 0x5642
     // sccb_i2c_write_byte(i2c_device, addr, 0xFF, sccb_reg_width, 0x01, 10);
     ret |= sccb_i2c_read_byte(i2c_device, addr, 0x300A, sccb_reg_width, &tmp, 100);
     if (ret != 0)
@@ -199,6 +203,10 @@ int cambus_scan()
 {
     uint16_t manuf_id = 0;
     uint16_t device_id = 0;
+
+    // Try to find an ID from sensors that use 8 bit
+    // register addresses like the OV2640 that would return
+    // 0x7FA2 for the manufacture ID and 0x2641 for the device ID.
     sccb_reg_width = 8;
     for (uint8_t addr = 0x08; addr <= 0x77; addr++)
     {
@@ -209,6 +217,10 @@ int cambus_scan()
             return addr;
         }
     }
+
+    // Try to find an ID from sensors that use 16 bit
+    // register addresses like the OV5642 that would return
+    // 0x5642 as the device ID and 0 for the manufacturer ID.
     sccb_reg_width = 16;
     for (uint8_t addr = 0x08; addr <= 0x77; addr++)
     {
@@ -221,6 +233,7 @@ int cambus_scan()
     }
     return 0;
 }
+
 int cambus_scan_gc0328(void)
 {
     uint8_t id;
