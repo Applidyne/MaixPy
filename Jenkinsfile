@@ -9,7 +9,7 @@ pipeline {
                     echo '******* MaixPy Build *******'
                     bat '''
                         cd projects/hello_world
-                        wsl.exe python3 project.py build
+                        C:\Windows\Sysnative\wsl.exe python3 project.py build
                     '''
                   }
             post {
