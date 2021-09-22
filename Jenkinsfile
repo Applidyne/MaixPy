@@ -8,13 +8,13 @@ pipeline {
             steps {
                     echo '******* MaixPy Build *******'
                     bat '''
-                        cd projects/hello_world
-                        C:\\Windows\\Sysnative\\wsl.exe python3 project.py build
+                        cd projects/maixpy_k210_minimum
+                        C:\\Windows\\Sysnative\\wsl.exe --exec python3 project.py build
                     '''
                   }
             post {
                 always {
-                    archiveArtifacts artifacts: 'projects/hello_world/build/hello_word*'
+                    archiveArtifacts artifacts: 'projects/maixpy_k210_minimum/build/maixpy*'
                 }
             }
         }
