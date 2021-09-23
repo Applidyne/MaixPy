@@ -86,6 +86,50 @@ static const Register_t mt9v022_reg_defaults[] =
       .mask    = 0,
       .value   = MT9V022_WINDOW_WIDTH_DEF,
       .wait_ms = 0 },
+    { .reg     = MT9V022_AEC_AGC_ENABLE,
+      .mask    = 0,
+      .value   = MT9V022_AEC_ENABLE | MT9V022_AGC_ENABLE,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_ANALOG_GAIN,
+      .mask    = 0,
+      .value   = MT9V022_ANALOG_GAIN_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_TOTAL_SHUTTER_WIDTH,
+      .mask    = 0,
+      .value   = MT9V022_TOTAL_SHUTTER_WIDTH_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_BLACK_LEVEL_CALIB_CTRL,
+      .mask    = 0,
+      .value   = 1,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_TEST_PATTERN,
+      .mask    = 0,
+      .value   = MT9V022_TEST_PATTERN_NONE,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_AEGC_DESIRED_BIN,
+      .mask    = 0,
+      .value   = MT9V022_AEGC_DESIRED_BIN_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_AEC_LPF,
+      .mask    = 0,
+      .value   = MT9V022_AEC_LPF_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_AGC_LPF,
+      .mask    = 0,
+      .value   = MT9V022_AGC_LPF_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_AEC_UPDATE_FREQUENCY,
+      .mask    = 0,
+      .value   = MT9V022_AEC_UPDATE_FREQUENCY_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_AGC_UPDATE_FREQUENCY,
+      .mask    = 0,
+      .value   = MT9V022_AGC_UPDATE_FREQUENCY_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_AEC_MAX_SHUTTER_WIDTH,
+      .mask    = 0,
+      .value   = MT9V022_AEC_MAX_SHUTTER_WIDTH_DEF,
+      .wait_ms = 0 },
 
     /* Table End Marker */
     { 0, 0, 0, 0 }
@@ -417,8 +461,57 @@ mt9v022_set_quality( sensor_t * sensor, int qs)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_set_colorbar( sensor_t * sensor, int enable)
+mt9v022_set_colorbar( sensor_t * sensor, int enable )
 {
+    uint16_t value = mt9v022_read( MT9V022_TEST_PATTERN );
+
+    value = ( value & ~MT9V022_TEST_PATTERN_GRAY_VERTICAL );
+    if( enable )
+    {
+        value |= MT9V022_TEST_PATTERN_GRAY_VERTICAL;
+    }
+
+    mt9v022_write( MT9V022_TEST_PATTERN, value );
+
+    return 0;
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static int
+mt9v022_set_auto_gain( sensor_t * sensor,
+                       int        enable,
+                       float      gain_db,
+                       float      gain_db_ceiling)
+{
+    if( enable )
+    {
+        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        value |= MT9V022_AGC_ENABLE;
+        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+    }
+    else
+    {
+	    	/* The user wants to set gain manually, hope, she
+			   * knows, what she's doing... Switch AGC off.
+			   */
+        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        value &= ~MT9V022_AGC_ENABLE;
+        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+
+        /* TODO: Set gain DB & gain DB ceiling */
+    }
+
+    return 0;
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static int
+mt9v022_get_gain_db( sensor_t * sensor, float *gain_db )
+{
+    uint16_t value = mt9v022_read( MT9V022_TEST_PATTERN );
+
     printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
     return 0;
 }
@@ -426,27 +519,30 @@ mt9v022_set_colorbar( sensor_t * sensor, int enable)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_set_auto_gain( sensor_t * sensor, int enable, float gain_db, float gain_db_ceiling)
+mt9v022_set_auto_exposure( sensor_t * sensor, int enable, int exposure_us )
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
-    return 0;
-}
+    if( enable )
+    {
+        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        value |= MT9V022_AEC_ENABLE;
+        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+    }
+    else
+    {
+        /* The user wants to set shutter width manually, hope,
+			   * she knows, what she's doing... Switch AEC off.
+			   */
+        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        value &= ~MT9V022_AEC_ENABLE;
+        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+        uint32_t shutter = mt9v022_read( MT9V022_TOTAL_SHUTTER_WIDTH );
+        mt9v022_write( MT9V022_TOTAL_SHUTTER_WIDTH, exposure_us );
+        printk("Shutter width from %lu to %lu\r\n", shutter, exposure_us );
 
-static int
-mt9v022_get_gain_db( sensor_t * sensor, float *gain_db)
-{
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
-    return 0;
-}
+        /* TODO: Check shutter width units and range and how it matches exposure_us */
+    }
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-static int
-mt9v022_set_auto_exposure( sensor_t * sensor, int enable, int exposure_us)
-{
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
     return 0;
 }
 
@@ -462,7 +558,11 @@ mt9v022_get_exposure_us( sensor_t * sensor, int *exposure_us)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_set_auto_whitebal( sensor_t * sensor, int enable, float r_gain_db, float g_gain_db, float b_gain_db)
+mt9v022_set_auto_whitebal( sensor_t * sensor,
+                           int        enable,
+                           float      r_gain_db,
+                           float      g_gain_db,
+                           float      b_gain_db)
 {
     /* Not used on monochrome sensor */
     printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
@@ -472,7 +572,10 @@ mt9v022_set_auto_whitebal( sensor_t * sensor, int enable, float r_gain_db, float
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_get_rgb_gain_db( sensor_t * sensor, float *r_gain_db, float *g_gain_db, float *b_gain_db)
+mt9v022_get_rgb_gain_db( sensor_t * sensor,
+                         float    * r_gain_db,
+                         float    * g_gain_db,
+                         float    * b_gain_db)
 {
     /* Not used on monochrome sensor */
     printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
@@ -484,7 +587,16 @@ mt9v022_get_rgb_gain_db( sensor_t * sensor, float *r_gain_db, float *g_gain_db, 
 static int
 mt9v022_set_hmirror( sensor_t * sensor, int enable)
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    uint16_t value = mt9v022_read( MT9V022_READ_MODE );
+
+    value = ( value & ~MT9V022_READ_MODE_COLUMN_FLIP );
+    if( enable )
+    {
+        value |= MT9V022_READ_MODE_COLUMN_FLIP;
+    }
+
+    mt9v022_write( MT9V022_READ_MODE, value );
+
     return 0;
 }
 
@@ -493,7 +605,16 @@ mt9v022_set_hmirror( sensor_t * sensor, int enable)
 static int
 mt9v022_set_vflip( sensor_t * sensor, int enable )
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    uint16_t value = mt9v022_read( MT9V022_READ_MODE );
+
+    value = ( value & ~MT9V022_READ_MODE_ROW_FLIP );
+    if( enable )
+    {
+        value |= MT9V022_READ_MODE_ROW_FLIP;
+    }
+
+    mt9v022_write( MT9V022_READ_MODE, value );
+
     return 0;
 }
 
@@ -522,8 +643,9 @@ mt9v022_set_lens_correction( sensor_t * sensor, int enable, int radi, int coef )
 int mt9v022_set_windowing( framesize_t framesize, int x, int y, int w, int h )
 {
     /* Set a subframe within the current framesize e.g. 224 x 224 */
+    /* TODO */
     printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
-	return 0;
+	  return 0;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
