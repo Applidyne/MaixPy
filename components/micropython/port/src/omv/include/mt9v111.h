@@ -33,6 +33,10 @@
 #include "sensor.h"
 #include "sipeed_i2c.h"
 
+/* Linux style macros for use in defines below */
+#define BIT(n)          (1 << (n))
+#define GENMASK(h, l)   (((~0UL) - (1UL << (l)) + 1) & (~0UL >> (15 - (h))))
+
 /* Default I2C address (controlled by SADDR line) */
 #define MT9V111_CONFIG_I2C_ADDRESS_0                            0x90    /* 0 */
 #define MT9V111_CONFIG_I2C_ADDRESS_1                            0xB8    /* 1 */
