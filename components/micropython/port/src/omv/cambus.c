@@ -159,6 +159,7 @@ int cambus_init(uint8_t reg_wid, int8_t i2c, int8_t pin_clk, int8_t pin_sda, uin
     sccb_i2c_init(i2c_device, pin_clk, pin_sda, gpio_clk, gpio_sda, 100000);
     return 0;
 }
+
 int cambus_read_id(uint8_t addr, uint16_t *manuf_id, uint16_t *device_id)
 {
     *manuf_id = 0;
@@ -207,11 +208,18 @@ int cambus_scan()
     uint16_t device_id = 0;
 
     // Try to find an ID from sensors that use 8 bit
-    // register addresses like the OV2640 that would return
+    // register addresses like the Omnivision OV2640 that would return
     // 0x7FA2 for the manufacture ID and 0x2641 for the device ID.
+
+    /* sccb_reg_width refers to the size of the register address.
+     * Not the size of the register contents */
     sccb_reg_width = 8;
+
+    /* Scan I2C addresses on the bus */
     for (uint8_t addr = 0x08; addr <= 0x77; addr++)
     {
+        /* cambus_read_id assumes Omnivision register addresses for
+         * manuf_id and device_id */
         if (cambus_read_id(addr, &manuf_id, &device_id) != 0)
             continue;
         if (device_id != 0 && device_id != 0xffff)
@@ -223,9 +231,16 @@ int cambus_scan()
     // Try to find an ID from sensors that use 16 bit
     // register addresses like the OV5642 that would return
     // 0x5642 as the device ID and 0 for the manufacturer ID.
+
+    /* sccb_reg_width refers to the size of the register address.
+     * Not the size of the register contents */
     sccb_reg_width = 16;
+
+    /* Scan I2C addresses on the bus */
     for (uint8_t addr = 0x08; addr <= 0x77; addr++)
     {
+        /* cambus_read16_id again assumes Omnivision 16 bit register addresses
+         * for manuf_id and device_id */
         if (cambus_read16_id(addr, &manuf_id, &device_id) != 0)
             continue;
         if (device_id != 0 && device_id != 0xffff)
@@ -278,31 +293,8 @@ int cambus_scan_mt9d111(void)
     return id;
 }
 
-// int cambus_scan_mt9v111(void)
-// {
-//     uint16_t id = mt9v111_read_id(i2c_device);
-//     if (id != MT9V111_CHIP_ID)
-//     {
-//         // mp_printf(&mp_plat_print, "error mt9v111 detect, ret id is 0x%x\r\n", id);
-//         return 0;
-//     }
-//     return id;
-// }
-
-// int cambus_scan_mt9v022(void)
-// {
-//     uint16_t id = mt9v022_read_id(i2c_device);
-//     if ( (id != MT9V022_CHIP_ID_REV_1 ) && (id != MT9V022_CHIP_ID_REV_3 ) )
-//     {
-//         // mp_printf(&mp_plat_print, "error mt9v022 detect, ret id is 0x%x\r\n", id);
-//         return 0;
-//     }
-//     return id;
-// }
-
 int cambus_readb(uint8_t slv_addr, uint16_t reg_addr, uint8_t *reg_data)
 {
-
     int ret = 0;
     sccb_i2c_read_byte(i2c_device, slv_addr, reg_addr, sccb_reg_width, reg_data, 10);
     if (0xff == *reg_data)
