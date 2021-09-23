@@ -69,8 +69,8 @@ static const Register_t mt9v022_reg_defaults[] =
     { .reg     = MT9V022_CHIP_CONTROL,
       .mask    = 0,
       .value   = MT9V022_CHIP_CONTROL_MASTER_MODE
-	      	       | MT9V022_CHIP_CONTROL_DOUT_ENABLE
- 		             | MT9V022_CHIP_CONTROL_SEQUENTIAL,
+                 | MT9V022_CHIP_CONTROL_DOUT_ENABLE
+                 | MT9V022_CHIP_CONTROL_SEQUENTIAL,
       .wait_ms = 0 },
     { .reg     = MT9V022_COLUMN_START,
       .mask    = 0,
@@ -137,6 +137,10 @@ static const Register_t mt9v022_reg_defaults[] =
     { 0, 0, 0, 0 }
 };
 
+/**
+ * \brief Registers settings for a QQVGA mode.
+ */
+
 static const Register_t mt9v022_reg_framesize_QQVGA[] =
 {
     { .reg     = MT9V022_COLUMN_START,
@@ -163,6 +167,10 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
     /* Table End Marker */
     { 0, 0, 0, 0 }
 };
+
+/**
+ * \brief Registers settings for a QVGA mode.
+ */
 
 static const Register_t mt9v022_reg_framesize_QVGA[] =
 {
@@ -191,6 +199,10 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
     { 0, 0, 0, 0 }
 };
 
+/**
+ * \brief Registers settings for a VGA mode.
+ */
+
 static const Register_t mt9v022_reg_framesize_VGA[] =
 {
     { .reg     =  MT9V022_COLUMN_START,
@@ -217,6 +229,10 @@ static const Register_t mt9v022_reg_framesize_VGA[] =
     /* Table End Marker */
     { 0, 0, 0, 0 }
 };
+
+/**
+ * \brief Registers settings for a WVGA mode.
+ */
 
 static const Register_t mt9v022_reg_framesize_WVGA[] =
 {
@@ -494,9 +510,9 @@ mt9v022_set_auto_gain( sensor_t * sensor,
     }
     else
     {
-	    	/* The user wants to set gain manually, hope, she
-			   * knows, what she's doing... Switch AGC off.
-			   */
+            /* The user wants to set gain manually, hope, she
+               * knows, what she's doing... Switch AGC off.
+               */
         uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
         value &= ~MT9V022_AGC_ENABLE;
         mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
@@ -532,8 +548,8 @@ mt9v022_set_auto_exposure( sensor_t * sensor, int enable, int exposure_us )
     else
     {
         /* The user wants to set shutter width manually, hope,
-			   * she knows, what she's doing... Switch AEC off.
-			   */
+               * she knows, what she's doing... Switch AEC off.
+               */
         uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
         value &= ~MT9V022_AEC_ENABLE;
         mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
@@ -647,7 +663,7 @@ int mt9v022_set_windowing( framesize_t framesize, int x, int y, int w, int h )
     /* Set a subframe within the current framesize e.g. 224 x 224 */
     /* TODO */
     printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
-	  return 0;
+      return 0;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
