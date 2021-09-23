@@ -100,7 +100,7 @@
 #define		    MT9V111_CORE_R0D_CORE_RESET_MASK	            BIT(0)
 
 #define MT9V111_CORE_CHIP_VERSION				        0x36            /* Repeated in 0xff */
-#define	        MT9V111_CORE_CHIP_ID          	                0x823A
+#define	        MT9V111_CHIP_ID          	                    0x823A
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

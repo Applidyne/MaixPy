@@ -107,6 +107,8 @@
 #define		    MT9V034_TOTAL_SHUTTER_WIDTH_MAX		        32765
 
 #define MT9V022_RESET					            0x0c
+#define         MT9V022_RESET_DIGITAL   		            (1 << 0)
+#define         MT9V022_RESET_AGC       		            (1 << 1)
 
 #define MT9V022_READ_MODE				            0x0d
 #define		    MT9V022_READ_MODE_ROW_BIN_MASK		        (3 << 0)
