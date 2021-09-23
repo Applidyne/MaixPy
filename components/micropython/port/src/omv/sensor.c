@@ -282,6 +282,7 @@ void sensor_init0()
 }
 
 //-------------------------------Monocular--------------------------------------
+
 int sensor_ov_detect(sensor_t *sensor)
 {
     int init_ret = 0;
@@ -358,86 +359,70 @@ int sensor_ov_detect(sensor_t *sensor)
     }
     else
     {
-        // Read ON semi sensor ID.
-        // Set the default I2C address for an MT9V022 sensor.
-        sensor->slv_addr = MT9V022_CONFIG_I2C_ADDRESS;
-        cambus_readw(sensor->slv_addr, MT9V022_CHIP_VERSION,
-                                       &sensor->chip_id);
-        mp_printf(&mp_plat_print, "[MAIXPY]: cambus addr 0x%x => ID 0x%x\n",
-                                  sensor->slv_addr,
-                                  sensor->chip_id);
-        if ( (sensor->chip_id == MT9V022_CHIP_ID_REV_1)
-             ||
-             (sensor->chip_id == MT9V022_CHIP_ID_REV_3)
-             ||
-             (sensor->chip_id == MT9V034_CHIP_ID ) ) /* Same as MT9V022 in different package? */
+        // Read Omnivision sensor ID.
+        // This looks like a duplication of what is
+        // done in cambus_scan ?
+        uint8_t tmp;
+        uint8_t reg_width = cambus_reg_width();
+        uint16_t reg_addr, reg_addr2;
+        if (reg_width == 8)
         {
-            mp_printf(&mp_plat_print, "[MAIXPY]: found MT9V022\n");
-            dvp_set_xclk_rate(MT9V022_SYSCLK_FREQ_DEF); /* 26.6MHz Max */
-            init_ret = mt9v022_init(sensor);
-        }
-        else if (sensor->chip_id == MT9V111_CHIP_ID)
-        {
-            mp_printf(&mp_plat_print, "[MAIXPY]: found MT9V111\n");
-            dvp_set_xclk_rate(MT9V111_SYSCLK_FREQ_DEF); /* 24-27MHz */
-            init_ret = mt9v111_init(sensor);
+            reg_addr = OV_CHIP_ID;
+            reg_addr2 = OV_CHIP_ID2;
         }
         else
-        { // Read OV sensor ID. This looks like a duplication of cambus_scan ?
-            uint8_t tmp;
-            uint8_t reg_width = cambus_reg_width();
-            uint16_t reg_addr, reg_addr2;
-            if (reg_width == 8)
-            {
-                reg_addr = OV_CHIP_ID;
-                reg_addr2 = OV_CHIP_ID2;
-            }
-            else
-            {
-                reg_addr = OV_CHIP_ID_16BIT;
-                reg_addr2 = OV_CHIP_ID2_16BIT;
-            }
-            cambus_readb(sensor->slv_addr, reg_addr, &tmp);
-            sensor->chip_id = tmp << 8;
-            cambus_readb(sensor->slv_addr, reg_addr2, &tmp);
-            sensor->chip_id |= tmp;
-            // Initialize sensor struct.
-            switch (sensor->chip_id)
-            {
-            case OV9650_ID:
-                /*ov9650_init*/
-                break;
-            case OV2640_ID:
-                mp_printf(&mp_plat_print, "[MAIXPY]: find ov2640\n");
-                init_ret = ov2640_init(sensor);
-                break;
-            case OV5640_ID:
-                mp_printf(&mp_plat_print, "[MAIXPY]: find ov5640\n");
-                init_ret = ov5640_init(sensor);
-                break;
-            // case OV7725_ID:
-            // 	/*ov7725_init*/
-            //     printk("find ov7725\r\n");
-            //     init_ret = ov7725_init(sensor);
-            //     break;
-            case OV5642_ID:
-                mp_printf(&mp_plat_print, "[MAIXPY]: find ov5642\n");
-                init_ret = ov5642_init(sensor);
-                break;
-            case OV7740_ID:
-                mp_printf(&mp_plat_print, "[MAIXPY]: find ov7740\n");
-                init_ret = ov7740_init(sensor);
-                break;
-            case OV3660_ID:
-                mp_printf(&mp_plat_print, "[MAIXPY]: find ov3660\n");
-                init_ret = ov3660_init(sensor);
-                break;
-            default:
-                // Sensor is not supported.
-                mp_printf(&mp_plat_print, "[MAIXPY]: found chip id %x\n",
-                                          sensor->chip_id );
-                return -3;
-            }
+        {
+            reg_addr = OV_CHIP_ID_16BIT;
+            reg_addr2 = OV_CHIP_ID2_16BIT;
+        }
+        cambus_readb(sensor->slv_addr, reg_addr, &tmp);
+        sensor->chip_id = tmp << 8;
+        cambus_readb(sensor->slv_addr, reg_addr2, &tmp);
+        sensor->chip_id |= tmp;
+
+        // Initialize sensor struct.
+        switch (sensor->chip_id)
+        {
+        case OV9650_ID:
+            /*ov9650_init*/
+            break;
+
+        case OV2640_ID:
+            mp_printf(&mp_plat_print, "[MAIXPY]: found ov2640\n");
+            init_ret = ov2640_init(sensor);
+            break;
+
+        case OV5640_ID:
+            mp_printf(&mp_plat_print, "[MAIXPY]: found ov5640\n");
+            init_ret = ov5640_init(sensor);
+            break;
+
+        // case OV7725_ID:
+        // 	/*ov7725_init*/
+        //     printk("find ov7725\r\n");
+        //     init_ret = ov7725_init(sensor);
+        //     break;
+
+        case OV5642_ID:
+            mp_printf(&mp_plat_print, "[MAIXPY]: found ov5642\n");
+            init_ret = ov5642_init(sensor);
+            break;
+
+        case OV7740_ID:
+            mp_printf(&mp_plat_print, "[MAIXPY]: found ov7740\n");
+            init_ret = ov7740_init(sensor);
+            break;
+
+        case OV3660_ID:
+            mp_printf(&mp_plat_print, "[MAIXPY]: found ov3660\n");
+            init_ret = ov3660_init(sensor);
+            break;
+
+        default:
+            // Sensor is not supported.
+            mp_printf(&mp_plat_print, "[MAIXPY]: found unknown chip id %x\n",
+                                        sensor->chip_id );
+            return -3;
         }
     }
 
@@ -548,13 +533,15 @@ int sensor_gc_detect(sensor_t *sensor, bool pwnd)
         {
         case GC0328_ID:
             sensor->slv_addr = GC0328_ADDR;
-            mp_printf(&mp_plat_print, "[MAIXPY]: find gc0328\n");
+            mp_printf(&mp_plat_print, "[MAIXPY]: found gc0328\n");
             gc0328_init(sensor);
             break;
+
         case GC2145_ID:
-            mp_printf(&mp_plat_print, "[MAIXPY]: find gc2145\n");
+            mp_printf(&mp_plat_print, "[MAIXPY]: found gc2145\n");
             sensor->slv_addr = GC2145_ADDR;
             gc2145_init(sensor);
+
         default:
             break;
         }
@@ -562,27 +549,58 @@ int sensor_gc_detect(sensor_t *sensor, bool pwnd)
     return 0;
 }
 
-int sensor_mt_detect(sensor_t *sensor, bool pwnd)
+int sensor_mt_detect( sensor_t *sensor, bool pwnd )
 {
     if (pwnd)
+    {
+        /* STANDBY pin on sensor. Low is powered on */
         DCMI_PWDN_LOW();
+    }
+
+    /* Toggle RESET# */
     DCMI_RESET_LOW();
     mp_hal_delay_ms(10);
     DCMI_RESET_HIGH();
-    mp_hal_delay_ms(10);
-    uint16_t id = cambus_scan_mt9d111();
-    if (0 == id)
+
+    /* Wait 10 SYSCLK to use two-wire serial interface. 1ms is plenty */
+    mp_hal_delay_ms(1);
+
+    /* Check for MTV9022 */
+    if( mt9v022_detect( sensor ) )
     {
-        return -3;
+        mp_printf( &mp_plat_print, "[MAIXPY]: found MT9V022 id %x on %x\n",
+                                   sensor->chip_id,
+                                   sensor->slv_addr );
+        sensor->snapshot = sensor_snapshot;
+        sensor->flush    = sensor_flush;
+        mt9v022_init( sensor );
+    }
+    else if( mt9v111_detect( sensor ) )
+    {
+        mp_printf( &mp_plat_print, "[MAIXPY]: found MT9V111 id %x on %x\n",
+                                   sensor->chip_id,
+                                   sensor->slv_addr );
+        sensor->snapshot = sensor_snapshot;
+        sensor->flush    = sensor_flush;
+        mt9v111_init( sensor );
     }
     else
     {
-        // mp_printf(&mp_plat_print, "[MAIXPY]: find mt9d111\n");
-        sensor->slv_addr = MT9D111_CONFIG_I2C_ID;
-        sensor->chip_id = id;
-        sensor->snapshot = sensor_snapshot;
-        sensor->flush = sensor_flush;
-        mt9d111_init(sensor);
+        /* Check for older MT9D111 */
+        uint16_t id = cambus_scan_mt9d111();
+        if (MT9D111_ID_CODE == id)
+        {
+            mp_printf(&mp_plat_print, "[MAIXPY]: found MT9D111\n");
+            sensor->slv_addr = MT9D111_CONFIG_I2C_ID;
+            sensor->chip_id  = id;
+            sensor->snapshot = sensor_snapshot;
+            sensor->flush    = sensor_flush;
+            mt9d111_init(sensor);
+        }
+        else
+        {
+            return -3;  /* No more MT sensors found */
+        }
     }
     return 0;
 }
@@ -621,7 +639,7 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
     is connected before initializing cambus and probing the sensor, which in turn
     requires pulling the sensor out of the reset state. So we try to probe the
     sensor with both polarities to determine line state. */
-    sensor.pwdn_pol = ACTIVE_HIGH;
+    sensor.pwdn_pol  = ACTIVE_HIGH;
     sensor.reset_pol = ACTIVE_HIGH;
     DCMI_PWDN_HIGH();
     mp_hal_delay_ms(10);
@@ -631,33 +649,39 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
     bool limit = sensor.choice_dev != 0;
 
     cambus_set_writeb_delay(10);
+
+    mp_printf(&mp_plat_print, "[MAIXPY]: find sensors choice_dev %d\n", sensor.choice_dev);
+
     if ((limit == false || sensor.choice_dev == 1) && 0 == sensor_ov_detect(&sensor))
     {
-        // find ov sensor
-        mp_printf(&mp_plat_print, "[MAIXPY]: find ov sensor\n");
+        // found ov sensor
+        mp_printf(&mp_plat_print, "[MAIXPY]: found ov sensor id 0x%x\n", sensor.chip_id );
         pwdn_lock = 1;
     }
     else if ((limit == false || sensor.choice_dev == 2) && 0 == sensor_gc_detect(&sensor, true))
-    // if ((limit == false || sensor.choice_dev == 2) && 0 == sensor_gc_detect(&sensor, true))
     {
+        // found gc sensor
+        mp_printf(&mp_plat_print, "[MAIXPY]: found gc sensor id 0x%x\n", sensor.chip_id );
         cambus_set_writeb_delay(2);
     }
     else if ( (limit == false || sensor.choice_dev == 3) && 0 == sensor_mt_detect(&sensor, true))
     {
-        //find mt sensor
-        mp_printf(&mp_plat_print, "[MAIXPY]: find mt sensor\n");
+        // found mt sensor
+        mp_printf(&mp_plat_print, "[MAIXPY]: found mt sensor id 0x%x\n", sensor.chip_id );
         cambus_set_writeb_delay(2);
     }
     else
     {
-        mp_printf(&mp_plat_print, "[MAIXPY]: no sensor\n");
+        mp_printf(&mp_plat_print, "[MAIXPY]: error no sensor\n");
         init_ret = -1;
     }
-    // mp_printf(&mp_plat_print, "[MAIXPY]: limit = %x sensor.choice_dev = %x \n", limit, sensor.choice_dev);
+
+    mp_printf(&mp_plat_print, "[MAIXPY]: limit = %x sensor.choice_dev = %x \n", limit, sensor.choice_dev);
     if (default_freq && sensor.chip_id == OV7740_ID)
     {
         dvp_set_xclk_rate(22000000);
     }
+
     dvp_set_image_format(DVP_CFG_YUV_FORMAT);
     dvp_disable_burst();
 	dvp_disable_auto();
@@ -700,18 +724,23 @@ int sensor_reset(mp_int_t freq, bool default_freq, bool set_regs, bool double_bu
     g_sensor_buff_index_in = 0;
     buff_ready = false;
 #endif
-    sensor.reset_set = false;
-    sensor.vflip = false;
-    sensor.hmirror = false;
+    sensor.reset_set   = false;
+    sensor.vflip       = false;
+    sensor.hmirror     = false;
     sensor.double_buff = double_buff;
-    sensor.choice_dev = choice_dev;
+    sensor.choice_dev  = choice_dev; /* Specify the type of camera to be searched,
+                                      * ov type (1), gc type (2), mt type (3), if
+                                      * 0 all types of cameras will be searched */
+
     sensor_init_fb(); //init FB
+
     if (sensor_init_dvp(freq, default_freq) != 0)
     {
         //init pins, scan I2C, do ov2640 init
         return -1;
     }
-    // Reset the sesnor state
+
+    // Reset the sensor state
     sensor.sde = 0;
     sensor.pixformat = 0;
     sensor.framesize = 0;
@@ -990,7 +1019,7 @@ int binocular_sensor_reset(mp_int_t freq)
     sensor.pwdn_pol = ACTIVE_BINOCULAR;
     sensor.reset_pol = ACTIVE_HIGH;
 
-    // Reset the sesnor state
+    // Reset the sensor state
     sensor.sde = 0;
     sensor.pixformat = 0;
     sensor.framesize = 0;
