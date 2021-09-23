@@ -122,12 +122,12 @@ typedef struct _sensor {
     uint16_t gs_bpp;            // Grayscale bytes per pixel.
     uint32_t hw_flags;          // Hardware flags (clock polarities/hw capabilities)
     bool     reset_set;         // reset called
-    bool     size_set;          // set_framesie called
+    bool     size_set;          // set_framesize was called
     bool     double_buff;
 
     uint32_t vsync_pin;         // VSYNC GPIO output pin.
-    polarity_t pwdn_pol; // PWDN polarity (TODO move to hw_flags)
-    polarity_t reset_pol; // Reset polarity (TODO move to hw_flags)
+    polarity_t pwdn_pol;        // PWDN polarity (TODO move to hw_flags)
+    polarity_t reset_pol;       // Reset polarity (TODO move to hw_flags)
 
     // Sensor state
     sde_t sde;                  // Special digital effects
