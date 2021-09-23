@@ -141,7 +141,7 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
 {
     { .reg     = MT9V022_COLUMN_START,
       .mask    = 0,
-      .value   = 56,
+      .value   = 56 / 4,
       .wait_ms = 0 },
     { .reg     = MT9V022_ROW_START,
       .mask    = 0,
@@ -168,7 +168,7 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
 {
     { .reg     = MT9V022_COLUMN_START,
       .mask    = 0,
-      .value   = 56,
+      .value   = 56 / 2,
       .wait_ms = 0 },
     { .reg     = MT9V022_ROW_START,
       .mask    = 0,
