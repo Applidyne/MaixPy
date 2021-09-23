@@ -68,7 +68,9 @@ static const Register_t mt9v022_reg_defaults[] =
       .wait_ms = 2 },
     { .reg     = MT9V022_CHIP_CONTROL,
       .mask    = 0,
-      .value   = MT9V022_CHIP_CONTROL_MASTER_MODE,
+      .value   = MT9V022_CHIP_CONTROL_MASTER_MODE
+	      	       | MT9V022_CHIP_CONTROL_DOUT_ENABLE
+ 		             | MT9V022_CHIP_CONTROL_SEQUENTIAL,
       .wait_ms = 0 },
     { .reg     = MT9V022_COLUMN_START,
       .mask    = 0,
