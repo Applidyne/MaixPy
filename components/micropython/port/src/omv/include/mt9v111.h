@@ -38,69 +38,69 @@
 #define MT9V111_CONFIG_I2C_ADDRESS_1                            0xB8    /* 1 */
 
 /* The first four rows are black rows. The active area spans 753x481 pixels. */
-#define MT9V111_PIXEL_ARRAY_WIDTH			                    640
-#define MT9V111_PIXEL_ARRAY_HEIGHT			                    480
+#define MT9V111_PIXEL_ARRAY_WIDTH                               640
+#define MT9V111_PIXEL_ARRAY_HEIGHT                              480
 
 /* Default pixel clock rate */
-#define MT9V111_SYSCLK_FREQ_DEF				                    26600000
+#define MT9V111_SYSCLK_FREQ_DEF                                 26600000
 
 /* Register addresses & default values */
-#define MT9V111_ADDR_SPACE				                0x01
-#define         MT9V111_ADDR_SPACE_IFP					        0x01    /* Default */
-#define         MT9V111_ADDR_SPACE_CORE				            0x04
+#define MT9V111_ADDR_SPACE                              0x01
+#define         MT9V111_ADDR_SPACE_IFP                          0x01    /* Default */
+#define         MT9V111_ADDR_SPACE_CORE                         0x04
 
-#define MT9V111_IFP_R06_OPMODE_CTRL			            0x06
-#define		    MT9V111_IFP_R06_OPMODE_CTRL_AWB_EN	            BIT(1)
-#define		    MT9V111_IFP_R06_OPMODE_CTRL_AE_EN	            BIT(14)
+#define MT9V111_IFP_R06_OPMODE_CTRL                     0x06
+#define         MT9V111_IFP_R06_OPMODE_CTRL_AWB_EN              BIT(1)
+#define         MT9V111_IFP_R06_OPMODE_CTRL_AE_EN               BIT(14)
 
-#define MT9V111_IFP_R07_IFP_RESET			            0x07
-#define		    MT9V111_IFP_R07_IFP_RESET_MASK		            BIT(0)
+#define MT9V111_IFP_R07_IFP_RESET                       0x07
+#define         MT9V111_IFP_R07_IFP_RESET_MASK                  BIT(0)
 
-#define MT9V111_IFP_R08_OUTFMT_CTRL			            0x08
-#define		    MT9V111_IFP_R08_OUTFMT_CTRL_FLICKER	            BIT(11)
-#define		    MT9V111_IFP_R08_OUTFMT_CTRL_PCLK	            BIT(5)
+#define MT9V111_IFP_R08_OUTFMT_CTRL                     0x08
+#define         MT9V111_IFP_R08_OUTFMT_CTRL_FLICKER             BIT(11)
+#define         MT9V111_IFP_R08_OUTFMT_CTRL_PCLK                BIT(5)
 
-#define MT9V111_IFP_R3A_OUTFMT_CTRL2			        0x3a
-#define		    MT9V111_IFP_R3A_OUTFMT_CTRL2_SWAP_CBCR	        BIT(0)
-#define		    MT9V111_IFP_R3A_OUTFMT_CTRL2_SWAP_YC	        BIT(1)
-#define		    MT9V111_IFP_R3A_OUTFMT_CTRL2_SWAP_MASK	        GENMASK(2, 0)
+#define MT9V111_IFP_R3A_OUTFMT_CTRL2                    0x3a
+#define         MT9V111_IFP_R3A_OUTFMT_CTRL2_SWAP_CBCR          BIT(0)
+#define         MT9V111_IFP_R3A_OUTFMT_CTRL2_SWAP_YC            BIT(1)
+#define         MT9V111_IFP_R3A_OUTFMT_CTRL2_SWAP_MASK          GENMASK(2, 0)
 
-#define MT9V111_IFP_RA5_HPAN				            0xa5
-#define MT9V111_IFP_RA6_HZOOM				            0xa6
-#define MT9V111_IFP_RA7_HOUT				            0xa7
-#define MT9V111_IFP_RA8_VPAN				            0xa8
-#define MT9V111_IFP_RA9_VZOOM				            0xa9
-#define MT9V111_IFP_RAA_VOUT				            0xaa
-#define         MT9V111_IFP_DECIMATION_MASK			            GENMASK(9, 0)
-#define         MT9V111_IFP_DECIMATION_FREEZE			        BIT(15)
+#define MT9V111_IFP_RA5_HPAN                            0xa5
+#define MT9V111_IFP_RA6_HZOOM                           0xa6
+#define MT9V111_IFP_RA7_HOUT                            0xa7
+#define MT9V111_IFP_RA8_VPAN                            0xa8
+#define MT9V111_IFP_RA9_VZOOM                           0xa9
+#define MT9V111_IFP_RAA_VOUT                            0xaa
+#define         MT9V111_IFP_DECIMATION_MASK                     GENMASK(9, 0)
+#define         MT9V111_IFP_DECIMATION_FREEZE                   BIT(15)
 
-#define MT9V111_CORE_R03_WIN_HEIGHT			            0x03
-#define		    MT9V111_CORE_R03_WIN_V_OFFS		                2
+#define MT9V111_CORE_R03_WIN_HEIGHT                     0x03
+#define         MT9V111_CORE_R03_WIN_V_OFFS                     2
 
-#define MT9V111_CORE_R04_WIN_WIDTH			            0x04
-#define		    MT9V111_CORE_R04_WIN_H_OFFS		                114
+#define MT9V111_CORE_R04_WIN_WIDTH                      0x04
+#define         MT9V111_CORE_R04_WIN_H_OFFS                     114
 
-#define MT9V111_CORE_R05_HBLANK				            0x05
-#define		    MT9V111_CORE_R05_MIN_HBLANK		                0x09
-#define		    MT9V111_CORE_R05_MAX_HBLANK		                GENMASK(9, 0)
-#define		    MT9V111_CORE_R05_DEF_HBLANK		                0x26
+#define MT9V111_CORE_R05_HBLANK                         0x05
+#define         MT9V111_CORE_R05_MIN_HBLANK                     0x09
+#define         MT9V111_CORE_R05_MAX_HBLANK                     GENMASK(9, 0)
+#define         MT9V111_CORE_R05_DEF_HBLANK                     0x26
 
-#define MT9V111_CORE_R06_VBLANK				            0x06
-#define		    MT9V111_CORE_R06_MIN_VBLANK		                0x03
-#define		    MT9V111_CORE_R06_MAX_VBLANK		                GENMASK(11, 0)
-#define		    MT9V111_CORE_R06_DEF_VBLANK		                0x04
+#define MT9V111_CORE_R06_VBLANK                         0x06
+#define         MT9V111_CORE_R06_MIN_VBLANK                     0x03
+#define         MT9V111_CORE_R06_MAX_VBLANK                     GENMASK(11, 0)
+#define         MT9V111_CORE_R06_DEF_VBLANK                     0x04
 
-#define MT9V111_CORE_R07_OUT_CTRL			            0x07
-#define		    MT9V111_CORE_R07_OUT_CTRL_SAMPLE	            BIT(4)
+#define MT9V111_CORE_R07_OUT_CTRL                       0x07
+#define         MT9V111_CORE_R07_OUT_CTRL_SAMPLE                BIT(4)
 
-#define MT9V111_CORE_R09_PIXEL_INT			            0x09
-#define		    MT9V111_CORE_R09_PIXEL_INT_MASK		            GENMASK(11, 0)
+#define MT9V111_CORE_R09_PIXEL_INT                      0x09
+#define         MT9V111_CORE_R09_PIXEL_INT_MASK                 GENMASK(11, 0)
 
-#define MT9V111_CORE_R0D_CORE_RESET			            0x0d
-#define		    MT9V111_CORE_R0D_CORE_RESET_MASK	            BIT(0)
+#define MT9V111_CORE_R0D_CORE_RESET                     0x0d
+#define         MT9V111_CORE_R0D_CORE_RESET_MASK                BIT(0)
 
-#define MT9V111_CORE_CHIP_VERSION				        0x36            /* Repeated in 0xff */
-#define	        MT9V111_CHIP_ID          	                    0x823A
+#define MT9V111_CORE_CHIP_VERSION                       0x36            /* Repeated in 0xff */
+#define         MT9V111_CHIP_ID                                 0x823A
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
