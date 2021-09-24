@@ -127,7 +127,7 @@
 #define         MT9V022_READ_MODE_DARK_ROWS                 (1 << 7)
 #define         MT9V022_READ_MODE_RESERVED                  0x0300
 
-/*
+/**
  * The sensor goes into monitor mode when R0x0E bit 0 is set to HIGH.
  * In this mode, the sensor first captures a programmable number of frames
  * (R0xC0), then goes into a sleep period for five minutes. The cycle of
