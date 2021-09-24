@@ -71,6 +71,14 @@ static const Register_t mt9v022_reg_defaults[] =
                  | MT9V022_CHIP_CONTROL_DOUT_ENABLE
                  | MT9V022_CHIP_CONTROL_SEQUENTIAL,
       .wait_ms = 0 },
+    { .reg     = MT9V022_MONITOR_MODE,
+      .mask    = 0,
+      .value   = MT9V022_MONITOR_MODE_DISABLE,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_MONITOR_MODE_CAPTURE_CONTROL,
+      .mask    = 0,
+      .value   = MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF,
+      .wait_ms = 0 },
     { .reg     = MT9V022_COLUMN_START,
       .mask    = 0,
       .value   = MT9V022_COLUMN_START_DEF,
@@ -381,11 +389,14 @@ mt9v022_sleep( sensor_t * sensor, int enable )
 
     if(enable)
     {
-        DCMI_PWDN_HIGH();
+        mt9v022_write( MT9V022_MONITOR_MODE,
+                       MT9V022_MONITOR_MODE_ENABLE );
+        mt9v022_write( MT9V022_MONITOR_MODE_CAPTURE_CONTROL,
+                       MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF );
     }
     else
     {
-        DCMI_PWDN_LOW();
+        mt9v022_write( MT9V022_MONITOR_MODE, MT9V022_MONITOR_MODE_DISABLE );
     }
 
     return 0;

@@ -127,10 +127,55 @@
 #define         MT9V022_READ_MODE_DARK_ROWS                 (1 << 7)
 #define         MT9V022_READ_MODE_RESERVED                  0x0300
 
+/*
+ * The sensor goes into monitor mode when R0x0E bit 0 is set to HIGH.
+ * In this mode, the sensor first captures a programmable number of frames
+ * (R0xC0), then goes into a sleep period for five minutes. The cycle of
+ * sleeping for five minutes and waking up to capture a number of frames
+ * continues until R0x0E bit 0 is cleared to return to normal operation.
+ *
+ * In some applications when monitor mode is enabled, the purpose of capturing
+ * frames is to calibrate the gain and exposure of the scene using automatic
+ * gain and exposure control feature. This feature typically takes less than
+ * 10 frames to settle. In case a larger number of frames is needed, the value
+ * of R0xC0 may be increased to capture more frames.
+ *
+ * See R0xC0 MT9V022_MONITOR_MODE_CAPTURE_CONTROL
+ *
+ * During the sleep period, none of the analog circuitry and a very small
+ * fraction of digital logic (including a five-minute timer) is powered.
+ * The master clock (SYSCLK) is therefore always required.
+ */
+#define MT9V022_MONITOR_MODE                        0x0e
+#define         MT9V022_MONITOR_MODE_ENABLE                 (1 << 0)
+#define         MT9V022_MONITOR_MODE_DISABLE                0
+
 #define MT9V022_PIXEL_OPERATION_MODE                0x0f
 #define         MT9V022_PIXEL_OPERATION_MODE_COLOR          (1 << 2)
 #define         MT9V022_PIXEL_OPERATION_MODE_HDR            (1 << 6)
 
+/**
+ *  The formula for gain setting is:  Gain = Bits[6:0] x 0.0625 (EQ 7)
+ *
+ * The analog gain range supported in the MT9V022 is 1X–4X with a step size of
+ * 6.25 percent. To control gain manually with this register, the sensor must
+ * NOT be in AGC mode. When adjusting the luminosity of an image, it is
+ * recommended to alter exposure first and yield to gain increases only
+ * when the exposure value has reached a maximum limit.
+ *
+ * Analog gain = bits (6:0) x 0.0625 for values 16–31
+ * Analog gain = bits (6:0)/2 x 0.125 for values 32–64
+ *
+ * For values 16–31: each LSB increases analog gain 0.0625v/v.
+ * A value of 16 = 1X gain.
+ *
+ * Range: 1X to 1.9375X.
+ * For values 32–64: each 2 LSB increases analog gain 0.125v/v
+ * (that is, double the gain increase for 2 LSB).
+ *
+ * Range: 2X to 4X. Odd values do not result in gain increases; the gain
+ * increases by 0.125 for values 32, 34, 36, and so on.
+ */
 #define MT9V022_ANALOG_GAIN                         0x35
 #define         MT9V022_ANALOG_GAIN_MIN                     16
 #define         MT9V022_ANALOG_GAIN_DEF                     16
@@ -226,12 +271,24 @@
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_DEF           480
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_MAX           32765
 
+/**
+ * In some applications when monitor mode is enabled, the purpose of capturing
+ * frames is to calibrate the gain and exposure of the scene using automatic
+ * gain and exposure control feature. This feature typically takes less than
+ * 10 frames to settle. In case a larger number of frames is needed, the value
+ * of R0xC0 may be increased to capture more frames.
+ *
+ * See also MT9V022_MONITOR_MODE
+ */
+#define MT9V022_MONITOR_MODE_CAPTURE_CONTROL        0xc0
+#define         MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF    10
+
 #define MT9V022_THERMAL_INFO                        0xc1
 
 /**
- *  This reisger combined with the Coarse/Total shutter width, defines the
- *  total integration time, This register is not shaddowed, but any change
- *  made does not take effect unti8l the following new frame. Register units
+ *  This register combined with the Coarse/Total shutter width, defines the
+ *  total integration time, This register is not shadowed, but any change
+ *  made does not take effect until the following new frame. Register units
  *  are master clock cycles. Maximum HBLANK( R0x05) + 751 = 1023 + 751 = 1774.
  *
  *  Note: When Coarse/Total shutter width is zero,
