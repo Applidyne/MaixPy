@@ -73,20 +73,21 @@
 #define         MT9V022_WINDOW_WIDTH_DEF                    752
 #define         MT9V022_WINDOW_WIDTH_MAX                    752
 
+/**
+ *  Number of blank columns in a row. Minimum horizontal blanking is 61 for
+ *  normal mode, 71 for column bin 2 mode and 91 for column bin 4 mode.
+ */
 #define MT9V022_HORIZONTAL_BLANKING                 0x05
-#define         MT9V022_HORIZONTAL_BLANKING_MIN             43
+#define         MT9V022_HORIZONTAL_BLANKING_MIN             61
+#define         MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF       61
+#define         MT9V022_HORIZONTAL_BLANKING_BIN_2_DEF       71
+#define         MT9V022_HORIZONTAL_BLANKING_BIN_4_DEF       91
 #define         MT9V022_HORIZONTAL_BLANKING_MAX             1023
 
 #define MT9V022_VERTICAL_BLANKING                   0x06
 #define         MT9V022_VERTICAL_BLANKING_MIN               4
-#define         MT9V022_VERTICAL_BLANKING_MAX               3000
-
-#define MT9V022_VERTICAL_BLANKING                   0x06
-#define         MT9V022_VERTICAL_BLANKING_MIN               4
-#define         MT9V034_VERTICAL_BLANKING_MIN               2
 #define         MT9V022_VERTICAL_BLANKING_DEF               45
 #define         MT9V022_VERTICAL_BLANKING_MAX               3000
-#define         MT9V034_VERTICAL_BLANKING_MAX               32288
 
 #define MT9V022_CHIP_CONTROL                        0x07
 #define         MT9V022_CHIP_CONTROL_MASTER_MODE            (1 << 3)
@@ -99,6 +100,11 @@
 
 #define MT9V022_SHUTTER_WIDTH_CONTROL               0x0a
 
+/**
+ *  Total integration time in number of rows. This value is used only when
+ *  AEC is disabled (bit 0 of R0xAF). This register is not shadowed, but any
+ *  change made does not take effect until the following new frame.
+ */
 #define MT9V022_TOTAL_SHUTTER_WIDTH                 0x0b
 #define         MT9V022_TOTAL_SHUTTER_WIDTH_MIN             1
 #define         MT9V034_TOTAL_SHUTTER_WIDTH_MIN             0
@@ -176,6 +182,7 @@
 #define         MT9V022_AEGC_DESIRED_BIN_MIN                1
 #define         MT9V022_AEGC_DESIRED_BIN_DEF                58
 #define         MT9V022_AEGC_DESIRED_BIN_MAX                64
+
 /*
  * Value between 0 and 15. This is the number of frames being skipped before
  * updating the auto exposure/gain.
@@ -220,6 +227,20 @@
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_MAX           32765
 
 #define MT9V022_THERMAL_INFO                        0xc1
+
+/**
+ *  This reisger combined with the Coarse/Total shutter width, defines the
+ *  total integration time, This register is not shaddowed, but any change
+ *  made does not take effect unti8l the following new frame. Register units
+ *  are master clock cycles. Maximum HBLANK( R0x05) + 751 = 1023 + 751 = 1774.
+ *
+ *  Note: When Coarse/Total shutter width is zero,
+ *        minimum fine shutter width = 260.
+ */
+#define MT9V022_FINE_SHUTTER_WIDTH                  0xd5
+#define         MT9V022_FINE_SHUTTER_WIDTH_MIN              0
+#define         MT9V022_FINE_SHUTTER_WIDTH_DEF              0
+#define         MT9V022_FINE_SHUTTER_WIDTH_MAX              1774
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

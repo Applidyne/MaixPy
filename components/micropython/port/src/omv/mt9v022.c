@@ -59,7 +59,6 @@ typedef struct
 /**
  * \brief Default registers values (Values after reset).
  */
-
 static const Register_t mt9v022_reg_defaults[] =
 {
     { .reg     = MT9V022_RESET,
@@ -87,6 +86,14 @@ static const Register_t mt9v022_reg_defaults[] =
     { .reg     = MT9V022_WINDOW_WIDTH,
       .mask    = 0,
       .value   = MT9V022_WINDOW_WIDTH_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_HORIZONTAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_VERTICAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
     { .reg     = MT9V022_AEC_AGC_ENABLE,
       .mask    = 0,
@@ -140,7 +147,6 @@ static const Register_t mt9v022_reg_defaults[] =
 /**
  * \brief Registers settings for a QQVGA mode.
  */
-
 static const Register_t mt9v022_reg_framesize_QQVGA[] =
 {
     { .reg     = MT9V022_COLUMN_START,
@@ -159,6 +165,14 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
       .mask    = 0,
       .value   = 640 / 4,
       .wait_ms = 0 },
+    { .reg     = MT9V022_HORIZONTAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_4_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_VERTICAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_VERTICAL_BLANKING_DEF,
+      .wait_ms = 0 },
     { .reg     = MT9V022_READ_MODE,
       .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
       .value   = (2 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (2 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
@@ -171,7 +185,6 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
 /**
  * \brief Registers settings for a QVGA mode.
  */
-
 static const Register_t mt9v022_reg_framesize_QVGA[] =
 {
     { .reg     = MT9V022_COLUMN_START,
@@ -190,6 +203,14 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
       .mask    = 0,
       .value   = 640 / 2,
       .wait_ms = 0 },
+    { .reg     = MT9V022_HORIZONTAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_2_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_VERTICAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_VERTICAL_BLANKING_DEF,
+      .wait_ms = 0 },
     { .reg     = MT9V022_READ_MODE,
       .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
       .value   = (1 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (1 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
@@ -202,7 +223,6 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
 /**
  * \brief Registers settings for a VGA mode.
  */
-
 static const Register_t mt9v022_reg_framesize_VGA[] =
 {
     { .reg     =  MT9V022_COLUMN_START,
@@ -221,6 +241,14 @@ static const Register_t mt9v022_reg_framesize_VGA[] =
       .mask    = 0,
       .value   = 640,
       .wait_ms = 0 },
+    { .reg     = MT9V022_HORIZONTAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_VERTICAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_VERTICAL_BLANKING_DEF,
+      .wait_ms = 0 },
     { .reg     = MT9V022_READ_MODE,
       .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
       .value   = (0 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
@@ -233,7 +261,6 @@ static const Register_t mt9v022_reg_framesize_VGA[] =
 /**
  * \brief Registers settings for a WVGA mode.
  */
-
 static const Register_t mt9v022_reg_framesize_WVGA[] =
 {
     { .reg     = MT9V022_COLUMN_START,
@@ -251,6 +278,14 @@ static const Register_t mt9v022_reg_framesize_WVGA[] =
     { .reg     = MT9V022_WINDOW_WIDTH,
       .mask    = 0,
       .value   = MT9V022_WINDOW_WIDTH_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_HORIZONTAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
+      .wait_ms = 0 },
+    { .reg     = MT9V022_VERTICAL_BLANKING,
+      .mask    = 0,
+      .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
     { .reg     = MT9V022_READ_MODE,
       .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
