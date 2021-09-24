@@ -94,10 +94,23 @@
 #define         MT9V022_CHIP_CONTROL_DOUT_ENABLE            (1 << 7)
 #define         MT9V022_CHIP_CONTROL_SEQUENTIAL             (1 << 8)
 
+/**
+ *  High dynamic range on the MT9VC022 is achieved by controlling the saturation
+ *  level of the pixel with a HDR range gate during the exposure period.
+ *
+ *  The step voltages V1, V2, V3, V4 that are used to control the HDR gating
+ *  are controlled via Rx031, Rx032, Rx033, Rx034 bits 4:0.
+ *
+ *  See MT9V022_PIXEL_OPERATION_MODE for enable of HDR mode.
+ */
 #define MT9V022_SHUTTER_WIDTH1                      0x08
-
 #define MT9V022_SHUTTER_WIDTH2                      0x09
 
+/**
+ *  Controls the auto adjust of the HDR knee points.
+ *  Manual adjust is default. If the AEC is enabled then the auto knee adjust
+ *  must also be enabled.
+ */
 #define MT9V022_SHUTTER_WIDTH_CONTROL               0x0a
 
 /**
@@ -153,6 +166,23 @@
 #define MT9V022_PIXEL_OPERATION_MODE                0x0f
 #define         MT9V022_PIXEL_OPERATION_MODE_COLOR          (1 << 2)
 #define         MT9V022_PIXEL_OPERATION_MODE_HDR            (1 << 6)
+
+/**
+ *  Controls the the strobe output of the sensor during exposure.
+ */
+#define MT9V022_LED_OUT_CONTROL                     0x1b
+#define         MT9V022_LED_OUT_DEF                         (0) /* Enable High */
+#define         MT9V022_LED_OUT_DISABLE                     (1 << 0)
+#define         MT9V022_LED_OUT_POLARITY_MASK               (1 << 1)
+#define         MT9V022_LED_OUT_POLARITY_HIGH               (0)
+#define         MT9V022_LED_OUT_POLARITY_LOW                (1 << 1)
+
+/**
+ *  Controls the 12bit to 10bit companding scheme of ADC values.
+ */
+#define MT9V022_ADC_MODE_CONTROL	                0x1c
+#define         MT9V022_ADC_MODE_CONTROL_LOW_LIGHT          0x0303
+#define         MT9V022_ADC_MODE_CONTROL_DEF                0x0203
 
 /**
  * The formula for gain setting is:  Gain = Bits[6:0] x 0.0625 (EQ 7)
