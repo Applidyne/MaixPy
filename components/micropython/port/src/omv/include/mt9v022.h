@@ -155,7 +155,7 @@
 #define         MT9V022_PIXEL_OPERATION_MODE_HDR            (1 << 6)
 
 /**
- *  The formula for gain setting is:  Gain = Bits[6:0] x 0.0625 (EQ 7)
+ * The formula for gain setting is:  Gain = Bits[6:0] x 0.0625 (EQ 7)
  *
  * The analog gain range supported in the MT9V022 is 1X–4X with a step size of
  * 6.25 percent. To control gain manually with this register, the sensor must
@@ -181,6 +181,10 @@
 #define         MT9V022_ANALOG_GAIN_DEF                     16
 #define         MT9V022_ANALOG_GAIN_MAX                     64
 
+/**
+ * When AGC is enabled (R0xAF[1] = 1), the maximum auto gain value is limited
+ * by R0x36; minimum auto gain is fixed to 16 gain-units.
+ */
 #define MT9V022_MAX_ANALOG_GAIN                     0x36
 #define         MT9V022_MAX_ANALOG_GAIN_MAX                 127
 
@@ -266,6 +270,10 @@
 #define         MT9V022_AEC_ENABLE                          (1 << 0)
 #define         MT9V022_AGC_ENABLE                          (1 << 1)
 
+/**
+ * When AEC is enabled (R0xAF[0] = 1), the maximum auto exposure value is
+ * limited by R0xBD; minimum auto exposure is fixed at 1 row.
+ */
 #define MT9V022_AEC_MAX_SHUTTER_WIDTH               0xbd
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_MIN           0
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_DEF           480
