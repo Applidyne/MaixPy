@@ -311,7 +311,7 @@ static const Register_t mt9v022_reg_framesize_WVGA[] =
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_write( const int8_t reg, const uint16_t val )
+__mt9v022_write( const int8_t reg, const uint16_t val )
 {
     uint8_t tmp[3] = { 0 };
     tmp[0] = (uint8_t)(reg & 0xff);
@@ -325,7 +325,7 @@ mt9v022_write( const int8_t reg, const uint16_t val )
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static uint16_t
-mt9v022_read( const uint8_t reg )
+__mt9v022_read( const uint8_t reg )
 {
     uint8_t buf[2] = { 0 };
     buf[0] = reg;
@@ -343,7 +343,7 @@ mt9v022_read( const uint8_t reg )
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_write_registers( const Register_t * registers )
+__mt9v022_write_registers( const Register_t * registers )
 {
     uint16_t i = 0;
     while( registers[i].reg != 0 )
@@ -353,14 +353,14 @@ mt9v022_write_registers( const Register_t * registers )
         if( registers[i].mask )
         {
             /* If there is a mask specified, do a read-modify-write */
-            value = mt9v022_read( registers[i].reg );
+            value = __mt9v022_read( registers[i].reg );
 
             /* Blank out the mask area and OR the new value into it */
             value = ( value & ~registers[i].mask )
                     | ( registers[i].value & registers[i].mask );
         }
 
-        mt9v022_write( registers[i].reg, value );
+        __mt9v022_write( registers[i].reg, value );
 
         if( registers[i].wait_ms )
         {
@@ -379,8 +379,8 @@ static int
 mt9v022_reset( sensor_t * sensor )
 {
     /* Reinit register configuration */
-    mt9v022_write_registers( mt9v022_reg_defaults );
-    mt9v022_write_registers( mt9v022_reg_framesize_WVGA );
+    __mt9v022_write_registers( mt9v022_reg_defaults );
+    __mt9v022_write_registers( mt9v022_reg_framesize_WVGA );
     return 0;
 }
 
@@ -393,14 +393,14 @@ mt9v022_sleep( sensor_t * sensor, int enable )
 
     if(enable)
     {
-        mt9v022_write( MT9V022_MONITOR_MODE,
-                       MT9V022_MONITOR_MODE_ENABLE );
-        mt9v022_write( MT9V022_MONITOR_MODE_CAPTURE_CONTROL,
-                       MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF );
+        __mt9v022_write( MT9V022_MONITOR_MODE,
+                         MT9V022_MONITOR_MODE_ENABLE );
+        __mt9v022_write( MT9V022_MONITOR_MODE_CAPTURE_CONTROL,
+                         MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF );
     }
     else
     {
-        mt9v022_write( MT9V022_MONITOR_MODE, MT9V022_MONITOR_MODE_DISABLE );
+        __mt9v022_write( MT9V022_MONITOR_MODE, MT9V022_MONITOR_MODE_DISABLE );
     }
 
     return 0;
@@ -409,10 +409,10 @@ mt9v022_sleep( sensor_t * sensor, int enable )
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_read_reg( sensor_t * sensor, uint8_t reg_addr)
+mt9v022_read_reg( sensor_t * sensor, uint8_t reg_addr )
 {
     printk("%s sensor %p\r\n", __func__, sensor);
-    return mt9v022_read( reg_addr );
+    return __mt9v022_read( reg_addr );
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -421,7 +421,7 @@ static int
 mt9v022_write_reg( sensor_t * sensor, uint8_t reg_addr, uint16_t reg_data)
 {
     printk("%s sensor %p\r\n", __func__, sensor);
-    mt9v022_write( reg_addr, reg_data );
+    __mt9v022_write( reg_addr, reg_data );
     return 0;
 }
 
@@ -448,19 +448,19 @@ mt9v022_set_framesize( sensor_t * sensor, framesize_t framesize )
     switch( framesize )
     {
         case FRAMESIZE_QQVGA:
-            mt9v022_write_registers( mt9v022_reg_framesize_QQVGA );
+            __mt9v022_write_registers( mt9v022_reg_framesize_QQVGA );
             break;
 
         case FRAMESIZE_QVGA:
-            mt9v022_write_registers( mt9v022_reg_framesize_QVGA );
+            __mt9v022_write_registers( mt9v022_reg_framesize_QVGA );
             break;
 
         case FRAMESIZE_VGA:
-            mt9v022_write_registers( mt9v022_reg_framesize_VGA );
+            __mt9v022_write_registers( mt9v022_reg_framesize_VGA );
             break;
 
         case FRAMESIZE_WVGA:
-            mt9v022_write_registers( mt9v022_reg_framesize_WVGA );
+            __mt9v022_write_registers( mt9v022_reg_framesize_WVGA );
             break;
 
         default:
@@ -531,7 +531,7 @@ mt9v022_set_quality( sensor_t * sensor, int qs)
 static int
 mt9v022_set_colorbar( sensor_t * sensor, int enable )
 {
-    uint16_t value = mt9v022_read( MT9V022_TEST_PATTERN );
+    uint16_t value = __mt9v022_read( MT9V022_TEST_PATTERN );
 
     value = ( value & ~MT9V022_TEST_PATTERN_GRAY_VERTICAL );
     if( enable )
@@ -539,7 +539,7 @@ mt9v022_set_colorbar( sensor_t * sensor, int enable )
         value |= MT9V022_TEST_PATTERN_GRAY_VERTICAL;
     }
 
-    mt9v022_write( MT9V022_TEST_PATTERN, value );
+    __mt9v022_write( MT9V022_TEST_PATTERN, value );
 
     return 0;
 }
@@ -554,18 +554,18 @@ mt9v022_set_auto_gain( sensor_t * sensor,
 {
     if( enable )
     {
-        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
         value |= MT9V022_AGC_ENABLE;
-        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
     }
     else
     {
             /* The user wants to set gain manually, hope, she
                * knows, what she's doing... Switch AGC off.
                */
-        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
         value &= ~MT9V022_AGC_ENABLE;
-        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
 
         /* TODO: Set gain DB & gain DB ceiling */
     }
@@ -578,7 +578,7 @@ mt9v022_set_auto_gain( sensor_t * sensor,
 static int
 mt9v022_get_gain_db( sensor_t * sensor, float *gain_db )
 {
-    uint16_t value = mt9v022_read( MT9V022_TEST_PATTERN );
+    uint16_t value = __mt9v022_read( MT9V022_TEST_PATTERN );
 
     printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
     return 0;
@@ -591,21 +591,21 @@ mt9v022_set_auto_exposure( sensor_t * sensor, int enable, int exposure_us )
 {
     if( enable )
     {
-        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
         value |= MT9V022_AEC_ENABLE;
-        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
     }
     else
     {
         /* The user wants to set shutter width manually, hope,
                * she knows, what she's doing... Switch AEC off.
                */
-        uint16_t value = mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
         value &= ~MT9V022_AEC_ENABLE;
-        mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
 
-        uint32_t shutter = mt9v022_read( MT9V022_TOTAL_SHUTTER_WIDTH );
-        mt9v022_write( MT9V022_TOTAL_SHUTTER_WIDTH, exposure_us );
+        uint32_t shutter = __mt9v022_read( MT9V022_TOTAL_SHUTTER_WIDTH );
+        __mt9v022_write( MT9V022_TOTAL_SHUTTER_WIDTH, exposure_us );
         printk("Shutter width from %lu to %lu\r\n", shutter, exposure_us );
 
         /* TODO: Check shutter width units and range and how it matches exposure_us */
@@ -655,7 +655,7 @@ mt9v022_get_rgb_gain_db( sensor_t * sensor,
 static int
 mt9v022_set_hmirror( sensor_t * sensor, int enable)
 {
-    uint16_t value = mt9v022_read( MT9V022_READ_MODE );
+    uint16_t value = __mt9v022_read( MT9V022_READ_MODE );
 
     value = ( value & ~MT9V022_READ_MODE_COLUMN_FLIP );
     if( enable )
@@ -663,7 +663,7 @@ mt9v022_set_hmirror( sensor_t * sensor, int enable)
         value |= MT9V022_READ_MODE_COLUMN_FLIP;
     }
 
-    mt9v022_write( MT9V022_READ_MODE, value );
+    __mt9v022_write( MT9V022_READ_MODE, value );
 
     return 0;
 }
@@ -673,7 +673,7 @@ mt9v022_set_hmirror( sensor_t * sensor, int enable)
 static int
 mt9v022_set_vflip( sensor_t * sensor, int enable )
 {
-    uint16_t value = mt9v022_read( MT9V022_READ_MODE );
+    uint16_t value = __mt9v022_read( MT9V022_READ_MODE );
 
     value = ( value & ~MT9V022_READ_MODE_ROW_FLIP );
     if( enable )
@@ -681,7 +681,7 @@ mt9v022_set_vflip( sensor_t * sensor, int enable )
         value |= MT9V022_READ_MODE_ROW_FLIP;
     }
 
-    mt9v022_write( MT9V022_READ_MODE, value );
+    __mt9v022_write( MT9V022_READ_MODE, value );
 
     return 0;
 }
