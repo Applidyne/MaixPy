@@ -337,6 +337,17 @@
 #define         MT9V022_FINE_SHUTTER_WIDTH_DEF              0
 #define         MT9V022_FINE_SHUTTER_WIDTH_MAX              1774
 
+
+/**
+ * The MT9V022 can operate in a byte wise 8-bit mode where the LSB of ther
+ * regioster value can be retrieved with a second 8 bit read from register
+ * 0xF0. The MSB is read from the designated register address. Writing
+ * 16-bits can be done in the same way with the LSB being written to
+ * 0xF0 after the MSB is written to the designated register.
+ */
+
+#define MT9V022_8BIT_ACCESS_LOW_BYTE                0xf0
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /** Return TRUE when an MT9V022 sensor is detected on the indicated bus */
