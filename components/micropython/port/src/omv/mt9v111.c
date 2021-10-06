@@ -553,8 +553,8 @@ mt9v111_set_vflip( sensor_t * sensor, int enable)
 
 static const uint8_t mt9v111_i2c_slave_addresses[] =
 {
-    MT9V111_CONFIG_I2C_ADDRESS_0,
-    MT9V111_CONFIG_I2C_ADDRESS_1,
+    MT9V111_CONFIG_I2C_ADDRESS_0 >> 1,
+    MT9V111_CONFIG_I2C_ADDRESS_1 >> 1,
 };
 
 bool
@@ -566,12 +566,14 @@ mt9v111_detect( sensor_t * sensor )
         /* Try to get MT9V111_CORE_CHIP_VERSION register from this address */
         uint16_t chip_id = 0;
         uint8_t  slave_address = mt9v111_i2c_slave_addresses[i];
+        mp_printf( &mp_plat_print, "[MAIXPY]: checking MT9V111 on addr 0x%x\n", slave_address );
         if( cambus_readw( slave_address,
                           MT9V111_CORE_CHIP_VERSION,
                           &chip_id ) )
         {
             if( chip_id == MT9V111_CHIP_ID )
             {
+                mp_printf( &mp_plat_print, "[MAIXPY]: found MT9V111 %x\n", chip_id );
                 mt9v111_i2c_slave_address = slave_address;
                 sensor->slv_addr          = slave_address;
                 sensor->chip_id           = chip_id;
