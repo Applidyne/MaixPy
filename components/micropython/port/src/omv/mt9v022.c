@@ -451,7 +451,8 @@ mt9v022_sleep( sensor_t * sensor, int enable )
 static int
 mt9v022_read_reg( sensor_t * sensor, uint8_t reg_addr )
 {
-    printk("%s sensor %p\r\n", __func__, sensor);
+    mp_printf( &mp_plat_print, "%s %x\n", __func__, reg_addr );
+
     return __mt9v022_read( reg_addr );
 }
 
@@ -460,7 +461,8 @@ mt9v022_read_reg( sensor_t * sensor, uint8_t reg_addr )
 static int
 mt9v022_write_reg( sensor_t * sensor, uint8_t reg_addr, uint16_t reg_data)
 {
-    printk("%s sensor %p\r\n", __func__, sensor);
+    mp_printf( &mp_plat_print, "%s %x %x\n", __func__, reg_addr, reg_data);
+
     __mt9v022_write( reg_addr, reg_data );
     return 0;
 }
@@ -470,7 +472,8 @@ mt9v022_write_reg( sensor_t * sensor, uint8_t reg_addr, uint16_t reg_data)
 static int
 mt9v022_set_pixformat( sensor_t * sensor, pixformat_t pixformat )
 {
-    printk("%s sensor %p\r\n", __func__, sensor);
+    mp_printf( &mp_plat_print, "%s %d\r\n", __func__, pixformat );
+
     return 0;
 }
 
@@ -479,7 +482,7 @@ mt9v022_set_pixformat( sensor_t * sensor, pixformat_t pixformat )
 static int
 mt9v022_set_framesize( sensor_t * sensor, framesize_t framesize )
 {
-    printk("%s sensor %p framesize %d\r\n", __func__, sensor, framesize);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, framesize );
 
     uint16_t width  = resolution[framesize][0];
     uint16_t height = resolution[framesize][1];
@@ -520,7 +523,7 @@ mt9v022_set_framesize( sensor_t * sensor, framesize_t framesize )
 static int
 mt9v022_set_framerate( sensor_t * sensor, framerate_t framerate )
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, framerate );
     return 0;
 }
 
@@ -529,7 +532,7 @@ mt9v022_set_framerate( sensor_t * sensor, framerate_t framerate )
 static int
 mt9v022_set_contrast( sensor_t * sensor, int level )
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, level );
     return 0;
 }
 
@@ -538,7 +541,7 @@ mt9v022_set_contrast( sensor_t * sensor, int level )
 static int
 mt9v022_set_brightness( sensor_t * sensor, int level )
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, level );
     return 0;
 }
 
@@ -547,7 +550,7 @@ mt9v022_set_brightness( sensor_t * sensor, int level )
 static int
 mt9v022_set_saturation( sensor_t * sensor, int level )
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, level );
     return 0;
 }
 
@@ -556,7 +559,7 @@ mt9v022_set_saturation( sensor_t * sensor, int level )
 static int
 mt9v022_set_gainceiling( sensor_t * sensor, gainceiling_t gainceiling )
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, gainceiling );
     return 0;
 }
 
@@ -566,7 +569,7 @@ static int
 mt9v022_set_quality( sensor_t * sensor, int qs)
 {
     /* Relates to JPEG quality. Not supported on this sensor */
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s\n", __func__ );
     return 0;
 }
 
@@ -575,15 +578,17 @@ mt9v022_set_quality( sensor_t * sensor, int qs)
 static int
 mt9v022_set_colorbar( sensor_t * sensor, int enable )
 {
-    uint16_t value = __mt9v022_read( MT9V022_TEST_PATTERN );
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, enable );
 
-    value = ( value & ~MT9V022_TEST_PATTERN_GRAY_VERTICAL );
+    uint16_t value = __mt9v022_read( MT9V022_REG_TEST_PATTERN );
+
+    value = ( value & ~( MT9V022_TEST_PATTERN_GRAY_MASK | MT9V022_TEST_PATTERN_ENABLE ) );
     if( enable )
     {
-        value |= MT9V022_TEST_PATTERN_GRAY_VERTICAL;
+        value |= MT9V022_TEST_PATTERN_GRAY_VERTICAL | MT9V022_TEST_PATTERN_ENABLE;
     }
 
-    __mt9v022_write( MT9V022_TEST_PATTERN, value );
+    __mt9v022_write( MT9V022_REG_TEST_PATTERN, value );
 
     return 0;
 }
@@ -596,20 +601,22 @@ mt9v022_set_auto_gain( sensor_t * sensor,
                        float      gain_db,
                        float      gain_db_ceiling)
 {
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, enable );
+
     if( enable )
     {
-        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        uint16_t value = __mt9v022_read( MT9V022_REG_AEC_AGC_ENABLE );
         value |= MT9V022_AGC_ENABLE;
-        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_REG_AEC_AGC_ENABLE, value );
     }
     else
     {
-            /* The user wants to set gain manually, hope, she
-               * knows, what she's doing... Switch AGC off.
-               */
-        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        /* The user wants to set gain manually, hope, she
+         * knows, what she's doing... Switch AGC off.
+         */
+        uint16_t value = __mt9v022_read( MT9V022_REG_AEC_AGC_ENABLE );
         value &= ~MT9V022_AGC_ENABLE;
-        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_REG_AEC_AGC_ENABLE, value );
 
         /* TODO: Set gain DB & gain DB ceiling */
     }
@@ -620,11 +627,10 @@ mt9v022_set_auto_gain( sensor_t * sensor,
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 static int
-mt9v022_get_gain_db( sensor_t * sensor, float *gain_db )
+mt9v022_get_gain_db( sensor_t * sensor, float* gain_db )
 {
-    uint16_t value = __mt9v022_read( MT9V022_TEST_PATTERN );
+    mp_printf( &mp_plat_print, "%s %f\n", __func__, *gain_db );
 
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
     return 0;
 }
 
@@ -633,24 +639,26 @@ mt9v022_get_gain_db( sensor_t * sensor, float *gain_db )
 static int
 mt9v022_set_auto_exposure( sensor_t * sensor, int enable, int exposure_us )
 {
+    mp_printf( &mp_plat_print, "%s %d %d\n", __func__, enable, exposure_us );
+
     if( enable )
     {
-        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+        uint16_t value = __mt9v022_read( MT9V022_REG_AEC_AGC_ENABLE );
         value |= MT9V022_AEC_ENABLE;
-        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_REG_AEC_AGC_ENABLE, value );
     }
     else
     {
         /* The user wants to set shutter width manually, hope,
-               * she knows, what she's doing... Switch AEC off.
-               */
-        uint16_t value = __mt9v022_read( MT9V022_AEC_AGC_ENABLE );
+         * she knows, what she's doing... Switch AEC off.
+         */
+        uint16_t value = __mt9v022_read( MT9V022_REG_AEC_AGC_ENABLE );
         value &= ~MT9V022_AEC_ENABLE;
-        __mt9v022_write( MT9V022_AEC_AGC_ENABLE, value );
+        __mt9v022_write( MT9V022_REG_AEC_AGC_ENABLE, value );
 
-        uint32_t shutter = __mt9v022_read( MT9V022_TOTAL_SHUTTER_WIDTH );
-        __mt9v022_write( MT9V022_TOTAL_SHUTTER_WIDTH, exposure_us );
-        printk("Shutter width from %lu to %lu\r\n", shutter, exposure_us );
+        uint32_t shutter = __mt9v022_read( MT9V022_REG_TOTAL_SHUTTER_WIDTH );
+        __mt9v022_write( MT9V022_REG_TOTAL_SHUTTER_WIDTH, exposure_us );
+        mp_printf( &mp_plat_print, "Shutter width from %u to %u\r\n", shutter, exposure_us );
 
         /* TODO: Check shutter width units and range and how it matches exposure_us */
     }
@@ -663,7 +671,8 @@ mt9v022_set_auto_exposure( sensor_t * sensor, int enable, int exposure_us )
 static int
 mt9v022_get_exposure_us( sensor_t * sensor, int *exposure_us)
 {
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s\n", __func__ );
+
     return 0;
 }
 
@@ -677,7 +686,7 @@ mt9v022_set_auto_whitebal( sensor_t * sensor,
                            float      b_gain_db)
 {
     /* Not used on monochrome sensor */
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s\n", __func__ );
     return 0;
 }
 
@@ -699,7 +708,9 @@ mt9v022_get_rgb_gain_db( sensor_t * sensor,
 static int
 mt9v022_set_hmirror( sensor_t * sensor, int enable)
 {
-    uint16_t value = __mt9v022_read( MT9V022_READ_MODE );
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, enable );
+
+    uint16_t value = __mt9v022_read( MT9V022_REG_READ_MODE );
 
     value = ( value & ~MT9V022_READ_MODE_COLUMN_FLIP );
     if( enable )
@@ -707,7 +718,7 @@ mt9v022_set_hmirror( sensor_t * sensor, int enable)
         value |= MT9V022_READ_MODE_COLUMN_FLIP;
     }
 
-    __mt9v022_write( MT9V022_READ_MODE, value );
+    __mt9v022_write( MT9V022_REG_READ_MODE, value );
 
     return 0;
 }
@@ -717,7 +728,9 @@ mt9v022_set_hmirror( sensor_t * sensor, int enable)
 static int
 mt9v022_set_vflip( sensor_t * sensor, int enable )
 {
-    uint16_t value = __mt9v022_read( MT9V022_READ_MODE );
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, enable );
+
+    uint16_t value = __mt9v022_read( MT9V022_REG_READ_MODE );
 
     value = ( value & ~MT9V022_READ_MODE_ROW_FLIP );
     if( enable )
@@ -725,7 +738,7 @@ mt9v022_set_vflip( sensor_t * sensor, int enable )
         value |= MT9V022_READ_MODE_ROW_FLIP;
     }
 
-    __mt9v022_write( MT9V022_READ_MODE, value );
+    __mt9v022_write( MT9V022_REG_READ_MODE, value );
 
     return 0;
 }
@@ -735,8 +748,9 @@ mt9v022_set_vflip( sensor_t * sensor, int enable )
 static int
 mt9v022_set_special_effect( sensor_t * sensor, sde_t sde )
 {
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, sde );
+
     /* SDE_NORMAL, SDE_NEGATIVE */
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
     return 0;
 }
 
@@ -746,7 +760,8 @@ static int
 mt9v022_set_lens_correction( sensor_t * sensor, int enable, int radi, int coef )
 {
     /* Not used */
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, enable );
+
     return 0;
 }
 
@@ -754,10 +769,12 @@ mt9v022_set_lens_correction( sensor_t * sensor, int enable, int radi, int coef )
 
 int mt9v022_set_windowing( framesize_t framesize, int x, int y, int w, int h )
 {
+    mp_printf( &mp_plat_print, "%s x %d y %d w %d h %d\n", __func__, x, y, h, w );
+
     /* Set a subframe within the current framesize e.g. 224 x 224 */
     /* TODO */
-    printk("%s %s %d\r\n", __func__, __FILE__, __LINE__);
-      return 0;
+
+    return 0;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
