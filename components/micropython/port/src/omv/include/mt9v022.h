@@ -48,27 +48,27 @@
 #define MT9V022_SYSCLK_FREQ_DEF                             26600000
 
 /* Register addresses & default values */
-#define MT9V022_CHIP_VERSION                        0x00
+#define MT9V022_REG_CHIP_VERSION                    0x00
 #define         MT9V022_CHIP_ID_REV_1                       0x1311
 #define         MT9V022_CHIP_ID_REV_3                       0x1313
 #define         MT9V034_CHIP_ID                             0x1324
 
-#define MT9V022_COLUMN_START                        0x01
+#define MT9V022_REG_COLUMN_START                    0x01
 #define         MT9V022_COLUMN_START_MIN                    1
 #define         MT9V022_COLUMN_START_DEF                    1
 #define         MT9V022_COLUMN_START_MAX                    752
 
-#define MT9V022_ROW_START                           0x02
+#define MT9V022_REG_ROW_START                       0x02
 #define         MT9V022_ROW_START_MIN                       4
 #define         MT9V022_ROW_START_DEF                       5
 #define         MT9V022_ROW_START_MAX                       482
 
-#define MT9V022_WINDOW_HEIGHT                       0x03
+#define MT9V022_REG_WINDOW_HEIGHT                   0x03
 #define         MT9V022_WINDOW_HEIGHT_MIN                   1
 #define         MT9V022_WINDOW_HEIGHT_DEF                   480
 #define         MT9V022_WINDOW_HEIGHT_MAX                   480
 
-#define MT9V022_WINDOW_WIDTH                        0x04
+#define MT9V022_REG_WINDOW_WIDTH                    0x04
 #define         MT9V022_WINDOW_WIDTH_MIN                    1
 #define         MT9V022_WINDOW_WIDTH_DEF                    752
 #define         MT9V022_WINDOW_WIDTH_MAX                    752
@@ -77,19 +77,19 @@
  *  Number of blank columns in a row. Minimum horizontal blanking is 61 for
  *  normal mode, 71 for column bin 2 mode and 91 for column bin 4 mode.
  */
-#define MT9V022_HORIZONTAL_BLANKING                 0x05
+#define MT9V022_REG_HORIZONTAL_BLANKING             0x05
 #define         MT9V022_HORIZONTAL_BLANKING_MIN             61
 #define         MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF       61
 #define         MT9V022_HORIZONTAL_BLANKING_BIN_2_DEF       71
 #define         MT9V022_HORIZONTAL_BLANKING_BIN_4_DEF       91
 #define         MT9V022_HORIZONTAL_BLANKING_MAX             1023
 
-#define MT9V022_VERTICAL_BLANKING                   0x06
+#define MT9V022_REG_VERTICAL_BLANKING               0x06
 #define         MT9V022_VERTICAL_BLANKING_MIN               4
 #define         MT9V022_VERTICAL_BLANKING_DEF               45
 #define         MT9V022_VERTICAL_BLANKING_MAX               3000
 
-#define MT9V022_CHIP_CONTROL                        0x07
+#define MT9V022_REG_CHIP_CONTROL                    0x07
 #define         MT9V022_CHIP_CONTROL_MASTER_MODE            (1 << 3)
 #define         MT9V022_CHIP_CONTROL_DOUT_ENABLE            (1 << 7)
 #define         MT9V022_CHIP_CONTROL_SEQUENTIAL             (1 << 8)
@@ -101,36 +101,36 @@
  *  The step voltages V1, V2, V3, V4 that are used to control the HDR gating
  *  are controlled via Rx031, Rx032, Rx033, Rx034 bits 4:0.
  *
- *  See MT9V022_PIXEL_OPERATION_MODE for enable of HDR mode.
+ *  See MT9V022_REG_PIXEL_OPERATION_MODE for enable of HDR mode.
  */
-#define MT9V022_SHUTTER_WIDTH1                      0x08
-#define MT9V022_SHUTTER_WIDTH2                      0x09
+#define MT9V022_REG_SHUTTER_WIDTH1                  0x08
+#define MT9V022_REG_SHUTTER_WIDTH2                  0x09
 
 /**
  *  Controls the auto adjust of the HDR knee points.
  *  Manual adjust is default. If the AEC is enabled then the auto knee adjust
  *  must also be enabled.
  */
-#define MT9V022_SHUTTER_WIDTH_CONTROL               0x0a
+#define MT9V022_REG_SHUTTER_WIDTH_CONTROL           0x0a
 
 /**
  *  Total integration time in number of rows. This value is used only when
  *  AEC is disabled (bit 0 of R0xAF). This register is not shadowed, but any
  *  change made does not take effect until the following new frame.
  */
-#define MT9V022_TOTAL_SHUTTER_WIDTH                 0x0b
+#define MT9V022_REG_TOTAL_SHUTTER_WIDTH             0x0b
 #define         MT9V022_TOTAL_SHUTTER_WIDTH_MIN             1
 #define         MT9V034_TOTAL_SHUTTER_WIDTH_MIN             0
 #define         MT9V022_TOTAL_SHUTTER_WIDTH_DEF             480
 #define         MT9V022_TOTAL_SHUTTER_WIDTH_MAX             32767
 #define         MT9V034_TOTAL_SHUTTER_WIDTH_MAX             32765
 
-#define MT9V022_RESET                               0x0c
+#define MT9V022_REG_RESET                           0x0c
 #define         MT9V022_RESET_DIGITAL                       (1 << 0)
 #define         MT9V022_RESET_AGC                           (1 << 1)
 #define         MT9V022_RESET_RELEASE                       (0)
 
-#define MT9V022_READ_MODE                           0x0d
+#define MT9V022_REG_READ_MODE                       0x0d
 #define         MT9V022_READ_MODE_ROW_BIN_MASK              (3 << 0)
 #define         MT9V022_READ_MODE_ROW_BIN_SHIFT             0
 #define         MT9V022_READ_MODE_COLUMN_BIN_MASK           (3 << 2)
@@ -154,24 +154,24 @@
  * 10 frames to settle. In case a larger number of frames is needed, the value
  * of R0xC0 may be increased to capture more frames.
  *
- * See R0xC0 MT9V022_MONITOR_MODE_CAPTURE_CONTROL
+ * See R0xC0 MT9V022_REG_MONITOR_MODE_CAPTURE_CONTROL
  *
  * During the sleep period, none of the analog circuitry and a very small
  * fraction of digital logic (including a five-minute timer) is powered.
  * The master clock (SYSCLK) is therefore always required.
  */
-#define MT9V022_MONITOR_MODE                        0x0e
+#define MT9V022_REG_MONITOR_MODE                    0x0e
 #define         MT9V022_MONITOR_MODE_ENABLE                 (1 << 0)
 #define         MT9V022_MONITOR_MODE_DISABLE                0
 
-#define MT9V022_PIXEL_OPERATION_MODE                0x0f
+#define MT9V022_REG_PIXEL_OPERATION_MODE            0x0f
 #define         MT9V022_PIXEL_OPERATION_MODE_COLOR          (1 << 2)
 #define         MT9V022_PIXEL_OPERATION_MODE_HDR            (1 << 6)
 
 /**
  *  Controls the the strobe output of the sensor during exposure.
  */
-#define MT9V022_LED_OUT_CONTROL                     0x1b
+#define MT9V022_REG_LED_OUT_CONTROL                 0x1b
 #define         MT9V022_LED_OUT_DEF                         (0) /* Enable High */
 #define         MT9V022_LED_OUT_DISABLE                     (1 << 0)
 #define         MT9V022_LED_OUT_POLARITY_MASK               (1 << 1)
@@ -181,7 +181,7 @@
 /**
  *  Controls the 12bit to 10bit companding scheme of ADC values.
  */
-#define MT9V022_ADC_MODE_CONTROL	                0x1c
+#define MT9V022_REG_ADC_MODE_CONTROL	            0x1c
 #define         MT9V022_ADC_MODE_CONTROL_LOW_LIGHT          0x0303
 #define         MT9V022_ADC_MODE_CONTROL_DEF                0x0203
 
@@ -207,7 +207,7 @@
  * Range: 2X to 4X. Odd values do not result in gain increases; the gain
  * increases by 0.125 for values 32, 34, 36, and so on.
  */
-#define MT9V022_ANALOG_GAIN                         0x35
+#define MT9V022_REG_ANALOG_GAIN                     0x35
 #define         MT9V022_ANALOG_GAIN_MIN                     16
 #define         MT9V022_ANALOG_GAIN_DEF                     16
 #define         MT9V022_ANALOG_GAIN_MAX                     64
@@ -216,33 +216,33 @@
  * When AGC is enabled (R0xAF[1] = 1), the maximum auto gain value is limited
  * by R0x36; minimum auto gain is fixed to 16 gain-units.
  */
-#define MT9V022_MAX_ANALOG_GAIN                     0x36
+#define MT9V022_REG_MAX_ANALOG_GAIN                 0x36
 #define         MT9V022_MAX_ANALOG_GAIN_MAX                 127
 
-#define MT9V022_FRAME_DARK_AVERAGE                  0x42
+#define MT9V022_REG_FRAME_DARK_AVERAGE              0x42
 
-#define MT9V022_DARK_AVG_THRESH                     0x46
+#define MT9V022_REG_DARK_AVG_THRESH                 0x46
 #define         MT9V022_DARK_AVG_LOW_THRESH_MASK            (255 << 0)
 #define         MT9V022_DARK_AVG_LOW_THRESH_SHIFT           0
 #define         MT9V022_DARK_AVG_HIGH_THRESH_MASK           (255 << 8)
 #define         MT9V022_DARK_AVG_HIGH_THRESH_SHIFT          8
 
-#define MT9V022_BLACK_LEVEL_CALIB_CTRL              0x47
+#define MT9V022_REG_BLACK_LEVEL_CALIB_CTRL          0x47
 
-#define MT9V022_ROW_NOISE_CORR_CONTROL              0x70
+#define MT9V022_REG_ROW_NOISE_CORR_CONTROL          0x70
 #define         MT9V034_ROW_NOISE_CORR_ENABLE               (1 << 0)
 #define         MT9V034_ROW_NOISE_CORR_USE_BLK_AVG          (1 << 1)
 #define         MT9V022_ROW_NOISE_CORR_ENABLE               (1 << 5)
 #define         MT9V022_ROW_NOISE_CORR_USE_BLK_AVG          (1 << 7)
 
-#define MT9V034_PIXEL_CLOCK                         0x72
+#define MT9V034_REG_PIXEL_CLOCK                     0x72
 #define         MT9V022_PIXEL_CLOCK_INV_LINE                (1 << 0)
 #define         MT9V022_PIXEL_CLOCK_INV_FRAME               (1 << 1)
 #define         MT9V022_PIXEL_CLOCK_XOR_LINE                (1 << 2)
 #define         MT9V022_PIXEL_CLOCK_CONT_LINE               (1 << 3)
 #define         MT9V022_PIXEL_CLOCK_INV_PXL_CLK             (1 << 4)
 
-#define MT9V022_TEST_PATTERN                        0x7f
+#define MT9V022_REG_TEST_PATTERN                    0x7f
 #define         MT9V022_TEST_PATTERN_DATA_MASK              (1023 << 0)
 #define         MT9V022_TEST_PATTERN_DATA_SHIFT             0
 #define         MT9V022_TEST_PATTERN_NONE                   0
@@ -258,7 +258,7 @@
 /*
  * Value between 0 and 64. Default 58.
  */
-#define MT9V022_AEGC_DESIRED_BIN                    0xa5
+#define MT9V022_REG_AEGC_DESIRED_BIN                0xa5
 #define         MT9V022_AEGC_DESIRED_BIN_MIN                1
 #define         MT9V022_AEGC_DESIRED_BIN_DEF                58
 #define         MT9V022_AEGC_DESIRED_BIN_MAX                64
@@ -267,12 +267,12 @@
  * Value between 0 and 15. This is the number of frames being skipped before
  * updating the auto exposure/gain.
  */
-#define MT9V022_AEC_UPDATE_FREQUENCY                0xa6
+#define MT9V022_REG_AEC_UPDATE_FREQUENCY            0xa6
 #define         MT9V022_AEC_UPDATE_FREQUENCY_MIN            0
 #define         MT9V022_AEC_UPDATE_FREQUENCY_DEF            2
 #define         MT9V022_AEC_UPDATE_FREQUENCY_MAX            15
 
-#define MT9V022_AGC_UPDATE_FREQUENCY                0xa9
+#define MT9V022_REG_AGC_UPDATE_FREQUENCY            0xa9
 #define         MT9V022_AGC_UPDATE_FREQUENCY_MIN            0
 #define         MT9V022_AGC_UPDATE_FREQUENCY_DEF            2
 #define         MT9V022_AGC_UPDATE_FREQUENCY_MAX            15
@@ -287,17 +287,17 @@
  * else
  *	next exp = current exp + ((calculated new exp - current exp) / 2^LPF)
  */
-#define MT9V022_AEC_LPF                             0xa8
+#define MT9V022_REG_AEC_LPF                         0xa8
 #define         MT9V022_AEC_LPF_MIN                         0
 #define         MT9V022_AEC_LPF_DEF                         2
 #define         MT9V022_AEC_LPF_MAX                         2
 
-#define MT9V022_AGC_LPF                             0xaa
+#define MT9V022_REG_AGC_LPF                         0xaa
 #define         MT9V022_AGC_LPF_MIN                         0
 #define         MT9V022_AGC_LPF_DEF                         2
 #define         MT9V022_AGC_LPF_MAX                         2
 
-#define MT9V022_AEC_AGC_ENABLE                      0xaf
+#define MT9V022_REG_AEC_AGC_ENABLE                  0xaf
 #define         MT9V022_AEC_ENABLE                          (1 << 0)
 #define         MT9V022_AGC_ENABLE                          (1 << 1)
 
@@ -305,7 +305,7 @@
  * When AEC is enabled (R0xAF[0] = 1), the maximum auto exposure value is
  * limited by R0xBD; minimum auto exposure is fixed at 1 row.
  */
-#define MT9V022_AEC_MAX_SHUTTER_WIDTH               0xbd
+#define MT9V022_REG_AEC_MAX_SHUTTER_WIDTH           0xbd
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_MIN           0
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_DEF           480
 #define         MT9V022_AEC_MAX_SHUTTER_WIDTH_MAX           32765
@@ -317,12 +317,12 @@
  * 10 frames to settle. In case a larger number of frames is needed, the value
  * of R0xC0 may be increased to capture more frames.
  *
- * See also MT9V022_MONITOR_MODE
+ * See also MT9V022_REG_MONITOR_MODE
  */
-#define MT9V022_MONITOR_MODE_CAPTURE_CONTROL        0xc0
+#define MT9V022_REG_MONITOR_MODE_CAPTURE_CONTROL    0xc0
 #define         MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF    10
 
-#define MT9V022_THERMAL_INFO                        0xc1
+#define MT9V022_REG_THERMAL_INFO                    0xc1
 
 /**
  *  This register combined with the Coarse/Total shutter width, defines the
@@ -333,7 +333,7 @@
  *  Note: When Coarse/Total shutter width is zero,
  *        minimum fine shutter width = 260.
  */
-#define MT9V022_FINE_SHUTTER_WIDTH                  0xd5
+#define MT9V022_REG_FINE_SHUTTER_WIDTH              0xd5
 #define         MT9V022_FINE_SHUTTER_WIDTH_MIN              0
 #define         MT9V022_FINE_SHUTTER_WIDTH_DEF              0
 #define         MT9V022_FINE_SHUTTER_WIDTH_MAX              1774
@@ -347,7 +347,7 @@
  * 0xF0 after the MSB is written to the designated register.
  */
 
-#define MT9V022_8BIT_ACCESS_LOW_BYTE                0xf0
+#define MT9V022_REG_8BIT_ACCESS_LOW_BYTE            0xf0
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
