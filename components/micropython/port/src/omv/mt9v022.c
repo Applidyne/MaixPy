@@ -137,14 +137,17 @@ static const Register_t mt9v022_reg_defaults[] =
       .mask    = 0,
       .value   = MT9V022_AEC_LPF_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_AGC_LPF,
       .mask    = 0,
       .value   = MT9V022_AGC_LPF_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_AEC_UPDATE_FREQUENCY,
       .mask    = 0,
       .value   = MT9V022_AEC_UPDATE_FREQUENCY_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_AGC_UPDATE_FREQUENCY,
       .mask    = 0,
       .value   = MT9V022_AGC_UPDATE_FREQUENCY_DEF,
@@ -167,29 +170,37 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
       .mask    = 0,
       .value   = 56 / 4,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_WIDTH,
       .mask    = 0,
       .value   = 640 / 4,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_ROW_START,
       .mask    = 0,
       .value   = MT9V022_ROW_START_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_HEIGHT,
       .mask    = 0,
       .value   = MT9V022_WINDOW_HEIGHT_DEF / 4,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_HORIZONTAL_BLANKING_BIN_4_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_READ_MODE,
-      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
-      .value   = (2 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (2 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
+      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
+               | MT9V022_READ_MODE_COLUMN_BIN_MASK,
+      .value   = (2 << MT9V022_READ_MODE_ROW_BIN_SHIFT)
+               | (2 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
       .wait_ms = 0 },
 
     /* Table End Marker */
@@ -205,29 +216,37 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
       .mask    = 0,
       .value   = (MT9V022_WINDOW_WIDTH_DEF - 640) / 4,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_WIDTH,
       .mask    = 0,
       .value   = 640 / 2,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_ROW_START,
       .mask    = 0,
       .value   = MT9V022_ROW_START_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_HEIGHT,
       .mask    = 0,
       .value   = MT9V022_WINDOW_HEIGHT_DEF / 2,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_HORIZONTAL_BLANKING_BIN_2_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
+      
     { .reg     = MT9V022_REG_READ_MODE,
-      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
-      .value   = (1 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (1 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
+      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
+               | MT9V022_READ_MODE_COLUMN_BIN_MASK,
+      .value   = (1 << MT9V022_READ_MODE_ROW_BIN_SHIFT)
+               | (1 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
       .wait_ms = 0 },
 
     /* Table End Marker */
@@ -243,29 +262,37 @@ static const Register_t mt9v022_reg_framesize_VGA[] =
       .mask    = 0,
       .value   = (MT9V022_WINDOW_WIDTH_DEF - 640) / 2,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_WIDTH,
       .mask    = 0,
       .value   = 640,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_ROW_START,
       .mask    = 0,
       .value   = MT9V022_ROW_START_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_HEIGHT,
       .mask    = 0,
       .value   = MT9V022_WINDOW_HEIGHT_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_READ_MODE,
-      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
-      .value   = (0 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
+      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
+               | MT9V022_READ_MODE_COLUMN_BIN_MASK,
+      .value   = (0 << MT9V022_READ_MODE_ROW_BIN_SHIFT)
+               | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
       .wait_ms = 0 },
 
     /* Table End Marker */
@@ -281,29 +308,37 @@ static const Register_t mt9v022_reg_framesize_WVGA[] =
       .mask    = 0,
       .value   = (MT9V022_WINDOW_WIDTH_DEF - 720) / 2,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_WIDTH,
       .mask    = 0,
       .value   = 720,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_ROW_START,
       .mask    = 0,
       .value   = MT9V022_ROW_START_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_HEIGHT,
       .mask    = 0,
       .value   = MT9V022_WINDOW_HEIGHT_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_READ_MODE,
-      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
-      .value   = (0 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
+      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
+               | MT9V022_READ_MODE_COLUMN_BIN_MASK,
+      .value   = (0 << MT9V022_READ_MODE_ROW_BIN_SHIFT)
+               | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
       .wait_ms = 0 },
 
     /* Table End Marker */
@@ -319,29 +354,37 @@ static const Register_t mt9v022_reg_framesize_WVGA2[] =
       .mask    = 0,
       .value   = MT9V022_COLUMN_START_DEF,
       .wait_ms = 0 },
-    { .reg     = MT9V022_REG_ROW_START,
-      .mask    = 0,
-      .value   = MT9V022_ROW_START_DEF,
-      .wait_ms = 0 },
-    { .reg     = MT9V022_REG_WINDOW_HEIGHT,
-      .mask    = 0,
-      .value   = MT9V022_WINDOW_HEIGHT_DEF,
-      .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_WINDOW_WIDTH,
       .mask    = 0,
       .value   = MT9V022_WINDOW_WIDTH_DEF,
       .wait_ms = 0 },
+
+    { .reg     = MT9V022_REG_ROW_START,
+      .mask    = 0,
+      .value   = MT9V022_ROW_START_DEF,
+      .wait_ms = 0 },
+
+    { .reg     = MT9V022_REG_WINDOW_HEIGHT,
+      .mask    = 0,
+      .value   = MT9V022_WINDOW_HEIGHT_DEF,
+      .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
       .mask    = 0,
       .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_READ_MODE,
-      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK | MT9V022_READ_MODE_COLUMN_BIN_MASK,
-      .value   = (0 << MT9V022_READ_MODE_ROW_BIN_SHIFT) | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
+      .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
+               | MT9V022_READ_MODE_COLUMN_BIN_MASK,
+      .value   = (0 << MT9V022_READ_MODE_ROW_BIN_SHIFT)
+               | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
       .wait_ms = 0 },
 
     /* Table End Marker */

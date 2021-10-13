@@ -90,9 +90,17 @@
 #define         MT9V022_VERTICAL_BLANKING_MAX               3000
 
 #define MT9V022_REG_CHIP_CONTROL                    0x07
+#define         MT9V022_CHIP_CONTROL_PROGRESSIVE_SCAN       (0 << 0)
+#define         MT9V022_CHIP_CONTROL_INTERLACED_SCAN_DUAL   (2 << 0)
+#define         MT9V022_CHIP_CONTROL_INTERLACED_SCAN_SINGLE (3 << 0)
 #define         MT9V022_CHIP_CONTROL_MASTER_MODE            (1 << 3)
+#define         MT9V022_CHIP_CONTROL_SNAPSHOT_MODE          (1 << 4)  /* Requires MASTER mode */
 #define         MT9V022_CHIP_CONTROL_DOUT_ENABLE            (1 << 7)
 #define         MT9V022_CHIP_CONTROL_SEQUENTIAL             (1 << 8)
+#define         MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR      (1 << 9)
+
+                /* Progressive scan, master, dout, sequential, defect coprrection */
+#define         MT9V022_CHIP_CONTROL_DEFAULT                (0x388) /* 0x388 */
 
 /**
  *  High dynamic range on the MT9VC022 is achieved by controlling the saturation
@@ -167,6 +175,7 @@
 #define MT9V022_REG_PIXEL_OPERATION_MODE            0x0f
 #define         MT9V022_PIXEL_OPERATION_MODE_COLOR          (1 << 2)
 #define         MT9V022_PIXEL_OPERATION_MODE_HDR            (1 << 6)
+#define         MT9V022_PIXEL_OPERATION_MODE_DEFAULTS       (0x11)
 
 /**
  *  Controls the the strobe output of the sensor during exposure.
@@ -184,6 +193,11 @@
 #define MT9V022_REG_ADC_MODE_CONTROL	            0x1c
 #define         MT9V022_ADC_MODE_CONTROL_LOW_LIGHT          0x0303
 #define         MT9V022_ADC_MODE_CONTROL_DEF                0x0203
+
+#define MT9V022_REG_SNAPSHOT_MODE                   0x20
+#define         MT9V022_SNAPSHOT_MODE_MASK                  0x204
+#define         MT9V022_NORMAL_MODE                             0
+#define         MT9V022_SNAPSHOT_MODE                       0x204
 
 /**
  * The formula for gain setting is:  Gain = Bits[6:0] x 0.0625 (EQ 7)
@@ -228,6 +242,7 @@
 #define         MT9V022_DARK_AVG_HIGH_THRESH_SHIFT          8
 
 #define MT9V022_REG_BLACK_LEVEL_CALIB_CTRL          0x47
+#define         MT9V022_BLACK_LEVEL_CALIB_CTRL_AUTO         1
 
 #define MT9V022_REG_ROW_NOISE_CORR_CONTROL          0x70
 #define         MT9V034_ROW_NOISE_CORR_ENABLE               (1 << 0)
@@ -235,12 +250,12 @@
 #define         MT9V022_ROW_NOISE_CORR_ENABLE               (1 << 5)
 #define         MT9V022_ROW_NOISE_CORR_USE_BLK_AVG          (1 << 7)
 
-#define MT9V034_REG_PIXEL_CLOCK                     0x72
+#define MT9V022_REG_PIXCLK_FV_LV                    0x74
 #define         MT9V022_PIXEL_CLOCK_INV_LINE                (1 << 0)
 #define         MT9V022_PIXEL_CLOCK_INV_FRAME               (1 << 1)
 #define         MT9V022_PIXEL_CLOCK_XOR_LINE                (1 << 2)
 #define         MT9V022_PIXEL_CLOCK_CONT_LINE               (1 << 3)
-#define         MT9V022_PIXEL_CLOCK_INV_PXL_CLK             (1 << 4)
+#define         MT9V022_PIXEL_CLOCK_INV_PIXCLK              (1 << 4)
 
 #define MT9V022_REG_TEST_PATTERN                    0x7f
 #define         MT9V022_TEST_PATTERN_DATA_MASK              (1023 << 0)
@@ -337,7 +352,6 @@
 #define         MT9V022_FINE_SHUTTER_WIDTH_MIN              0
 #define         MT9V022_FINE_SHUTTER_WIDTH_DEF              0
 #define         MT9V022_FINE_SHUTTER_WIDTH_MAX              1774
-
 
 /**
  * The MT9V022 can operate in a byte wise 8-bit mode where the LSB of ther
