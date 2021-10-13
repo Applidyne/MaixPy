@@ -59,57 +59,34 @@ typedef struct
  */
 static const Register_t mt9v022_reg_defaults[] =
 {
-    // { .reg     = MT9V022_REG_RESET,
-    //   .mask    = 0,
-    //   .value   = MT9V022_RESET_DIGITAL | MT9V022_RESET_AGC,
-    //   .wait_ms = 1 },
-    // { .reg     = MT9V022_REG_RESET,
-    //   .mask    = 0,
-    //   .value   = MT9V022_RESET_RELEASE,
-    //   .wait_ms = 10 },
+    { .reg     = MT9V022_REG_RESET,
+      .mask    = 0,
+      .value   = MT9V022_RESET_DIGITAL | MT9V022_RESET_AGC,
+      .wait_ms = 1 },
+
+    { .reg     = MT9V022_REG_RESET,
+      .mask    = 0,
+      .value   = MT9V022_RESET_RELEASE,
+      .wait_ms = 10 },
+
     { .reg     = MT9V022_REG_CHIP_CONTROL,
       .mask    = 0,
-      .value   = MT9V022_CHIP_CONTROL_MASTER_MODE
-                 | MT9V022_CHIP_CONTROL_DOUT_ENABLE
-                 | MT9V022_CHIP_CONTROL_SEQUENTIAL,
+      .value   = MT9V022_CHIP_CONTROL_PROGRESSIVE_SCAN,
+               | MT9V022_CHIP_CONTROL_MASTER_MODE
+//                 | MT9V022_CHIP_CONTROL_SNAPSHOT_MODE
+               | MT9V022_CHIP_CONTROL_DOUT_ENABLE
+               | MT9V022_CHIP_CONTROL_SEQUENTIAL
+               | MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR,
       .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_MONITOR_MODE,
-    //   .mask    = 0,
-    //   .value   = MT9V022_MONITOR_MODE_DISABLE,
-    //   .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_MONITOR_MODE_CAPTURE_CONTROL,
-    //   .mask    = 0,
-    //   .value   = MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF,
-    //   .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_COLUMN_START,
-    //   .mask    = 0,
-    //   .value   = MT9V022_COLUMN_START_DEF,
-    //   .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_ROW_START,
-    //   .mask    = 0,
-    //   .value   = MT9V022_ROW_START_DEF,
-    //   .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_WINDOW_HEIGHT,
-    //   .mask    = 0,
-    //   .value   = MT9V022_WINDOW_HEIGHT_DEF,
-    //   .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_WINDOW_WIDTH,
-    //   .mask    = 0,
-    //   .value   = MT9V022_WINDOW_WIDTH_DEF,
-    //   .wait_ms = 0 },
-    { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
+
+    /* Configure the polarity of the frame and line signals. The Kendryte
+     * expects the frame as vertical sync pulse instead of a frame valid
+     * pulse. The LINE valid pulse is OK as it is. */
+    { .reg     = MT9V022_REG_PIXCLK_FV_LV,
       .mask    = 0,
-      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
+      .value   = MT9V022_PIXEL_CLOCK_INV_FRAME,
       .wait_ms = 0 },
-    { .reg     = MT9V022_REG_VERTICAL_BLANKING,
-      .mask    = 0,
-      .value   = MT9V022_VERTICAL_BLANKING_DEF,
-      .wait_ms = 0 },
-    { .reg     = MT9V022_REG_AEC_AGC_ENABLE,
-      .mask    = 0,
-      .value   = MT9V022_AEC_ENABLE | MT9V022_AGC_ENABLE,
-      .wait_ms = 0 },
-    { .reg     = MT9V022_REG_ADC_MODE_CONTROL,
+
       .mask    = 0,
       .value   = MT9V022_ADC_MODE_CONTROL_LOW_LIGHT,
       .wait_ms = 0 },
@@ -152,9 +129,30 @@ static const Register_t mt9v022_reg_defaults[] =
       .mask    = 0,
       .value   = MT9V022_AGC_UPDATE_FREQUENCY_DEF,
       .wait_ms = 0 },
+
+    { .reg     = MT9V022_REG_ANALOG_GAIN,
+      .mask    = 0,
+      .value   = MT9V022_ANALOG_GAIN_DEF,
+      .wait_ms = 0 },
+
+    { .reg     = MT9V022_REG_TOTAL_SHUTTER_WIDTH,
+      .mask    = 0,
+      .value   = MT9V022_TOTAL_SHUTTER_WIDTH_DEF,
+      .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_AEC_MAX_SHUTTER_WIDTH,
       .mask    = 0,
       .value   = MT9V022_AEC_MAX_SHUTTER_WIDTH_DEF,
+      .wait_ms = 0 },
+
+    { .reg     = MT9V022_REG_BLACK_LEVEL_CALIB_CTRL,
+      .mask    = 0,
+      .value   = MT9V022_BLACK_LEVEL_CALIB_CTRL_AUTO,
+      .wait_ms = 0 },
+
+    { .reg     = MT9V022_REG_TEST_PATTERN,
+      .mask    = 0,
+      .value   = MT9V022_TEST_PATTERN_NONE,
       .wait_ms = 0 },
 
     /* Table End Marker */
@@ -241,7 +239,7 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
       .mask    = 0,
       .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
-      
+
     { .reg     = MT9V022_REG_READ_MODE,
       .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
                | MT9V022_READ_MODE_COLUMN_BIN_MASK,
