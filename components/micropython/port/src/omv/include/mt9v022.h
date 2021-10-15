@@ -99,7 +99,7 @@
 #define         MT9V022_CHIP_CONTROL_SEQUENTIAL             (1 << 8)
 #define         MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR      (1 << 9)
 
-                /* Progressive scan, master, dout, sequential, defect coprrection */
+                /* Progressive scan, master, dout, sequential, defect correction */
 #define         MT9V022_CHIP_CONTROL_DEFAULT                (0x388) /* 0x388 */
 
 /**
