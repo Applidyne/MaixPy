@@ -12,7 +12,7 @@
 #include "py/mperrno.h"
 #include "fpioa.h"
 #include "fpioa_des.h"
-	
+
 /*Please don't modify this macro*/
 #define DES_SPACE_NUM(str) (sizeof("                                   ")-sizeof("   "))-strlen(str)
 #define FUN_SPACE_NUM(str) (sizeof("	                  ")-sizeof("  "))-strlen(str)
@@ -46,19 +46,19 @@ STATIC mp_obj_t Maix_set_function(size_t n_args, const mp_obj_t *pos_args, mp_ma
 	int16_t set_sl = args[ARG_set_sl].u_int;
 	int16_t set_st = args[ARG_set_st].u_int;
 	int16_t set_io_driving = args[ARG_set_io_driving].u_int;
-	
-	if(pin_num > FPIOA_NUM_IO)		
+
+	if(pin_num > FPIOA_NUM_IO)
 		mp_raise_ValueError("Don't have this Pin");
-	
+
 	if(func_num < 0 || func_num > USABLE_FUNC_NUM)
 		mp_raise_ValueError("This function is invalid");
-	
+
 	if(0 != fpioa_set_function(pin_num,func_num))
 	{
 		mp_printf(&mp_plat_print, "[Maix]:Opps!Can not set fpioa\n");
 		mp_raise_OSError(MP_EIO);
 	}
-	
+
 	if (-1 != set_sl) {
 		fpioa_set_sl(pin_num, set_sl);
 	}
@@ -66,10 +66,10 @@ STATIC mp_obj_t Maix_set_function(size_t n_args, const mp_obj_t *pos_args, mp_ma
 	if (-1 != set_st) {
 		fpioa_set_st(pin_num, set_st);
 	}
-	
+
 	if(set_io_driving > FPIOA_DRIVING_MAX)
 		mp_raise_ValueError("set_io_driving > FPIOA_DRIVING_MAX");
-	
+
 	if (-1 != set_io_driving) {
 		fpioa_set_io_driving(pin_num, set_io_driving);
 	}
@@ -87,14 +87,14 @@ STATIC mp_obj_t Maix_get_Pin_num(size_t n_args, const mp_obj_t *pos_args, mp_map
 	};
 	mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args-1, pos_args+1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
-	
+
 	fpioa_function_t fun_num = args[ARG_func].u_int;
-	
+
 	if(fun_num < 0 || fun_num > USABLE_FUNC_NUM)
 		mp_raise_ValueError("This function is invalid");
-	
+
 	int Pin_num = fpioa_get_io_by_function(fun_num);
-	
+
 	if(-1 == Pin_num)
 	{
 		return mp_const_none;
@@ -111,7 +111,7 @@ STATIC mp_obj_t Maix_fpioa_help(size_t n_args, const mp_obj_t *pos_args, mp_map_
 	static const mp_arg_t allowed_args[] = {
 		{ MP_QSTR_func,	 MP_ARG_INT, {.u_int = USABLE_FUNC_NUM} },
 	};
-	mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];  
+	mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
 	mp_arg_parse_all(n_args-1, pos_args+1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 	char* des_space_str = NULL;
 	char* fun_space_str = NULL;
@@ -125,20 +125,20 @@ STATIC mp_obj_t Maix_fpioa_help(size_t n_args, const mp_obj_t *pos_args, mp_map_
 	mp_printf(&mp_plat_print, "+-------------------+----------------------------------+\n") ;
 	if(args[ARG_func].u_int == USABLE_FUNC_NUM)
 	{
-		
+
 		for(int i = 0;i < USABLE_FUNC_NUM ; i++)
-		{    
+		{
 			/*malloc memory*/
 			des_space_str = (char*)malloc(DES_SPACE_NUM(func_description[i])+1);
 			fun_space_str = (char*)malloc(FUN_SPACE_NUM( func_name[i])+1);
-			
+
 			memset(des_space_str,' ',DES_SPACE_NUM(func_description[i]));
 			des_space_str[DES_SPACE_NUM(func_description[i])] = '\0';
-			
+
 			memset(fun_space_str,' ',FUN_SPACE_NUM( func_name[i]));
 			fun_space_str[FUN_SPACE_NUM( func_name[i])] = '\0';
-			
-		
+
+
 			mp_printf(&mp_plat_print, "|  %s%s|  %s%s|\n", func_name[i],fun_space_str,func_description[i],des_space_str) ;
 			free(des_space_str);
 			free(fun_space_str);
@@ -146,16 +146,16 @@ STATIC mp_obj_t Maix_fpioa_help(size_t n_args, const mp_obj_t *pos_args, mp_map_
 		}
 	}
 	else
-	{	
+	{
 		des_space_str = (char*)malloc(DES_SPACE_NUM(func_description[args[ARG_func].u_int])+1);
 		fun_space_str = (char*)malloc(FUN_SPACE_NUM(func_name[args[ARG_func].u_int])+1);
-		
+
 		memset(des_space_str,' ',DES_SPACE_NUM(func_description[args[ARG_func].u_int]));
 		des_space_str[DES_SPACE_NUM(func_description[args[ARG_func].u_int])] = '\0';
-		
+
 		memset(fun_space_str,' ',FUN_SPACE_NUM(func_name[args[ARG_func].u_int]));
 		fun_space_str[FUN_SPACE_NUM(func_name[args[ARG_func].u_int])] = '\0';
-		
+
 		mp_printf(&mp_plat_print, "|  %s%s|  %s%s|\n", func_name[args[ARG_func].u_int],fun_space_str,func_description[args[ARG_func].u_int],des_space_str) ;
 		free(des_space_str);
 		free(fun_space_str);
@@ -166,7 +166,7 @@ STATIC mp_obj_t Maix_fpioa_help(size_t n_args, const mp_obj_t *pos_args, mp_map_
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(Maix_fpioa_help_obj, 0,Maix_fpioa_help);
 
 STATIC mp_obj_t Maix_fpioa_make_new() {
-    
+
     Maix_fpioa_obj_t *self = m_new_obj(Maix_fpioa_obj_t);
     self->base.type = &Maix_fpioa_type;
 
@@ -381,9 +381,9 @@ STATIC const mp_rom_map_elem_t Maix_fpioa_locals_dict_table[] = {
 	{MP_ROM_QSTR(MP_QSTR_TIMER2_TOGGLE3), MP_ROM_INT(200)},
 	{MP_ROM_QSTR(MP_QSTR_TIMER2_TOGGLE4), MP_ROM_INT(201)},
 	{MP_ROM_QSTR(MP_QSTR_CLK_SPI2	   ), MP_ROM_INT(202)},
-	{MP_ROM_QSTR(MP_QSTR_CLK_I2C2	   ), MP_ROM_INT(203)},	
+	{MP_ROM_QSTR(MP_QSTR_CLK_I2C2	   ), MP_ROM_INT(203)},
 };
-STATIC MP_DEFINE_CONST_DICT(Maix_fpioa_locals_dict, Maix_fpioa_locals_dict_table);	
+STATIC MP_DEFINE_CONST_DICT(Maix_fpioa_locals_dict, Maix_fpioa_locals_dict_table);
 const mp_obj_type_t Maix_fpioa_type = {
 	{ &mp_type_type },
 	.name = MP_QSTR_FPIOA,
