@@ -258,6 +258,7 @@
 #define         MT9V022_PIXEL_CLOCK_INV_PIXCLK              (1 << 4)
 
 #define MT9V022_REG_TEST_PATTERN                    0x7f
+                /* Data used as replacement of ADC input when enabled */
 #define         MT9V022_TEST_PATTERN_DATA_MASK              (1023 << 0)
 #define         MT9V022_TEST_PATTERN_DATA_SHIFT             0
 #define         MT9V022_TEST_PATTERN_NONE                   0
