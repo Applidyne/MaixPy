@@ -165,8 +165,8 @@ void soft_i2c_init( uint8_t  pin_scl,
 {
     configASSERT(address_width == 7 || address_width == 10);
 
-    // pin_scl 41 -> gpiohs 25
     // pin_sda 40 -> gpiohs 24
+    // pin_scl 41 -> gpiohs 25
 
     soft_i2c.gpiohs_scl = 25;  /* HACK */
     soft_i2c.gpiohs_sda = 24;  /* HACK */
