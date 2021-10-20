@@ -69,46 +69,34 @@ static const Register_t mt9v022_reg_defaults[] =
       .value   = MT9V022_RESET_RELEASE,
       .wait_ms = 10 },
 
-    { .reg     = MT9V022_REG_CHIP_CONTROL,
-      .mask    = 0,
-      .value   = MT9V022_CHIP_CONTROL_PROGRESSIVE_SCAN,
-               | MT9V022_CHIP_CONTROL_MASTER_MODE
-//                 | MT9V022_CHIP_CONTROL_SNAPSHOT_MODE
-               | MT9V022_CHIP_CONTROL_DOUT_ENABLE
-               | MT9V022_CHIP_CONTROL_SEQUENTIAL
-               | MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR,
-      .wait_ms = 0 },
+//     { .reg     = MT9V022_REG_CHIP_CONTROL,
+//       .mask    = 0,
+//       .value   = MT9V022_CHIP_CONTROL_PROGRESSIVE_SCAN
+//                  | MT9V022_CHIP_CONTROL_MASTER_MODE
+// //                 | MT9V022_CHIP_CONTROL_SNAPSHOT_MODE
+// //                 | MT9V022_CHIP_CONTROL_DOUT_ENABLE
+// //                 | MT9V022_CHIP_CONTROL_SEQUENTIAL
+//                  | MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR,
+//       .wait_ms = 0 },
 
     /* Configure the polarity of the frame and line signals. The Kendryte
      * expects the frame as vertical sync pulse instead of a frame valid
      * pulse. The LINE valid pulse is OK as it is. */
     { .reg     = MT9V022_REG_PIXCLK_FV_LV,
-      .mask    = 0,
+      .mask    = MT9V022_PIXEL_CLOCK_INV_FRAME,
       .value   = MT9V022_PIXEL_CLOCK_INV_FRAME,
       .wait_ms = 0 },
 
-      .mask    = 0,
-      .value   = MT9V022_ADC_MODE_CONTROL_LOW_LIGHT,
-      .wait_ms = 0 },
-    { .reg     = MT9V022_REG_ANALOG_GAIN,
-      .mask    = 0,
-      .value   = MT9V022_ANALOG_GAIN_DEF,
-      .wait_ms = 0 },
-    { .reg     = MT9V022_REG_TOTAL_SHUTTER_WIDTH,
-      .mask    = 0,
-      .value   = MT9V022_TOTAL_SHUTTER_WIDTH_DEF,
-      .wait_ms = 0 },
-    { .reg     = MT9V022_REG_BLACK_LEVEL_CALIB_CTRL,
-      .mask    = 0,
-      .value   = 1,
-      .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_TEST_PATTERN,
+    // { .reg     = MT9V022_REG_PIXEL_OPERATION_MODE,
     //   .mask    = 0,
-    //   .value   = MT9V022_TEST_PATTERN_NONE,
+    //   .value   = MT9V022_PIXEL_OPERATION_MODE_HDR,
     //   .wait_ms = 0 },
-    // { .reg     = MT9V022_REG_AEGC_DESIRED_BIN,
+
+    // { .reg     = MT9V022_REG_READ_MODE,
     //   .mask    = 0,
-    //   .value   = MT9V022_REG_AEGC_DESIRED_BIN_DEF,
+    //   .value   = MT9V022_READ_MODE_RESERVED,
+    //              //| MT9V022_READ_MODE_DARK_COLUMNS
+    //              //| MT9V022_READ_MODE_DARK_ROWS,
     //   .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_AEC_AGC_ENABLE,
@@ -141,25 +129,25 @@ static const Register_t mt9v022_reg_defaults[] =
       .value   = MT9V022_ANALOG_GAIN_DEF,
       .wait_ms = 0 },
 
-    { .reg     = MT9V022_REG_TOTAL_SHUTTER_WIDTH,
-      .mask    = 0,
-      .value   = MT9V022_TOTAL_SHUTTER_WIDTH_DEF,
-      .wait_ms = 0 },
+    // { .reg     = MT9V022_REG_TOTAL_SHUTTER_WIDTH,
+    //   .mask    = 0,
+    //   .value   = MT9V022_TOTAL_SHUTTER_WIDTH_DEF,
+    //   .wait_ms = 0 },
 
-    { .reg     = MT9V022_REG_AEC_MAX_SHUTTER_WIDTH,
-      .mask    = 0,
-      .value   = MT9V022_AEC_MAX_SHUTTER_WIDTH_DEF,
-      .wait_ms = 0 },
+    // { .reg     = MT9V022_REG_AEC_MAX_SHUTTER_WIDTH,
+    //   .mask    = 0,
+    //   .value   = MT9V022_AEC_MAX_SHUTTER_WIDTH_DEF,
+    //   .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_BLACK_LEVEL_CALIB_CTRL,
       .mask    = 0,
       .value   = MT9V022_BLACK_LEVEL_CALIB_CTRL_AUTO,
       .wait_ms = 0 },
 
-    { .reg     = MT9V022_REG_TEST_PATTERN,
-      .mask    = 0,
-      .value   = MT9V022_TEST_PATTERN_NONE,
-      .wait_ms = 0 },
+    // { .reg     = MT9V022_REG_TEST_PATTERN,
+    //   .mask    = 0,
+    //   .value   = MT9V022_TEST_PATTERN_NONE,
+    //   .wait_ms = 0 },
 
     /* Table End Marker */
     { 0, 0, 0, 0 }
@@ -397,34 +385,52 @@ static const Register_t mt9v022_reg_framesize_WVGA2[] =
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static int
-__mt9v022_write( const int8_t reg, const uint16_t val )
+static uint16_t
+__mt9v022_read( const uint8_t reg )
 {
-    uint8_t tmp[3] = { 0 };
-    tmp[0] = (uint8_t)(reg & 0xff);
-    tmp[1] = (uint8_t)((val >> 8) & 0xff);
-    tmp[2] = (uint8_t)(val & 0xff);
-    int ret = maix_i2c_send_data( mt9v022_i2c_device,
-                                  mt9v022_i2c_slave_address, tmp, 3, 20);
-    return ret;
+    //mp_printf( &mp_plat_print, "[__mt9v022_read]: addr 0x%x reg 0x%x\n", mt9v022_i2c_slave_address, reg );
+
+    uint8_t buf[2];
+    int ret = cambus_readb( mt9v022_i2c_slave_address,
+                            reg,
+                            buf );
+    if( ret == 0 )
+    {
+        ret = cambus_readb( mt9v022_i2c_slave_address,
+                            MT9V022_REG_8BIT_ACCESS_LOW_BYTE,
+                            &buf[1] );
+    }
+    if( ret == 0 )
+    {
+        uint16_t value = (buf[0]<<8) | buf[1];
+        //mp_printf( &mp_plat_print, "[MAIXPY]: MT9V022 addr 0x%x read reg 0x%x ret %d value 0x%x\n", mt9v022_i2c_slave_address, reg, ret, value );
+        return value;
+    }
+    mp_printf( &mp_plat_print, "[__mt9v022_read]: MT9V022 addr 0x%x read reg 0x%x ret %d ERR\n", mt9v022_i2c_slave_address, reg, ret );
+    return -1;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static uint16_t
-__mt9v022_read( const uint8_t reg )
+static int
+__mt9v022_write( const int8_t reg, const uint16_t val )
 {
-    uint8_t buf[2] = { 0 };
-    buf[0] = reg;
-    maix_i2c_send_data( mt9v022_i2c_device,
-                        mt9v022_i2c_slave_address, buf, 1, 20);
-    int ret = maix_i2c_recv_data( mt9v022_i2c_device,
-                                  mt9v022_i2c_slave_address, NULL, 0, buf, 2, 30);
-    if (ret == 0)
+    int ret = cambus_writeb( mt9v022_i2c_slave_address, reg, val >> 8 );
+    ret = cambus_writeb( mt9v022_i2c_slave_address, MT9V022_REG_8BIT_ACCESS_LOW_BYTE, val & 0xFF );
+    // int ret = cambus_writew( mt9v022_i2c_slave_address, reg, val );
+
+    /* Debug check to see if we can read back what we had written.
+     * Delay to allow SHADOWED register updates.
+     */
+    mp_hal_delay_ms( 10 );
+    uint16_t rval = __mt9v022_read( reg );
+    if( rval != val )
     {
-        return (buf[0] << 8) + buf[1];
+        mp_printf( &mp_plat_print,
+                   "[__mt9v022_write]: MT9V022 addr 0x%x write error reg 0x%x: write 0x%x read 0x%x\n",
+                   mt9v022_i2c_slave_address, (reg & 0xff), val, rval );
     }
-    return -1;
+    return ret;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -834,10 +840,10 @@ int mt9v022_set_windowing( framesize_t framesize, int x, int y, int w, int h )
 
 static const uint8_t mt9v022_i2c_slave_addresses[] =
 {
-    MT9V022_CONFIG_I2C_ADDRESS_0,
-    MT9V022_CONFIG_I2C_ADDRESS_1,
-    MT9V022_CONFIG_I2C_ADDRESS_2,
-    MT9V022_CONFIG_I2C_ADDRESS_3,
+    MT9V022_CONFIG_I2C_ADDRESS_0 >> 1,
+    MT9V022_CONFIG_I2C_ADDRESS_1 >> 1,
+    MT9V022_CONFIG_I2C_ADDRESS_2 >> 1,
+    MT9V022_CONFIG_I2C_ADDRESS_3 >> 1,
 };
 
 bool
@@ -846,24 +852,21 @@ mt9v022_detect( sensor_t * sensor )
     /* Scan possible bus addresses */
     for( uint8_t i = 0; i < sizeof( mt9v022_i2c_slave_addresses ); i++ )
     {
-        /* Try to get MT9V022_CHIP_VERSION register from this address */
-        uint16_t chip_id = 0;
-        uint8_t  slave_address = mt9v022_i2c_slave_addresses[i];
-        if( cambus_readw( slave_address,
-                          MT9V022_CHIP_VERSION,
-                          &chip_id ) )
+        /* Try to get MT9V022_REG_CHIP_VERSION register from this address */
+        mt9v022_i2c_slave_address = mt9v022_i2c_slave_addresses[i];
+        mp_printf( &mp_plat_print, "[MAIXPY]: checking MT9V022 on addr 0x%x\n", mt9v022_i2c_slave_address );
+        uint16_t chip_id = __mt9v022_read( MT9V022_REG_CHIP_VERSION );
+        mp_printf( &mp_plat_print, "[MAIXPY]: chip_id 0x%x\n", chip_id );
+        if( ( chip_id == MT9V022_CHIP_ID_REV_1 )
+            ||
+            ( chip_id == MT9V022_CHIP_ID_REV_3 )
+            ||
+            ( chip_id == MT9V034_CHIP_ID ) )
         {
-            if( ( chip_id == MT9V022_CHIP_ID_REV_1 )
-                ||
-                ( chip_id == MT9V022_CHIP_ID_REV_3 )
-                ||
-                ( chip_id == MT9V034_CHIP_ID ) )
-            {
-                mt9v022_i2c_slave_address = slave_address;
-                sensor->slv_addr          = slave_address;
-                sensor->chip_id           = chip_id;
-                return true;
-            }
+            mp_printf( &mp_plat_print, "[MAIXPY]: found MT9V022\n", chip_id );
+            sensor->slv_addr          = mt9v022_i2c_slave_address;
+            sensor->chip_id           = chip_id;
+            return true;
         }
     }
 
@@ -903,11 +906,14 @@ mt9v022_init( sensor_t * sensor )
     sensor->set_windowing       = mt9v022_set_windowing;
     /* sensor->snapshot and sensor->flush are set by default */
 
-    dvp_set_xclk_rate(MT9V022_SYSCLK_FREQ_DEF); /* 26.6MHz Max */
+    //dvp_set_xclk_rate(20000000); /* 26.6MHz Max */
+    //dvp_set_xclk_rate(MT9V022_SYSCLK_FREQ_DEF); /* 26.6MHz Max */
 
-    /* Set sensor flags */
-    SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_VSYNC, 1);
-    SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_HSYNC, 1);
+    /** Set sensor flags
+     *  TODO: These don't seem to be used anywhere.
+     */
+    SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_VSYNC, 0);
+    SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_HSYNC, 0);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_PIXCK, 1);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_FSYNC, 1);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_JPEGE, 0);
