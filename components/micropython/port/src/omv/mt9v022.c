@@ -628,7 +628,7 @@ mt9v022_set_colorbar( sensor_t * sensor, int enable )
     value = ( value & ~( MT9V022_TEST_PATTERN_GRAY_MASK | MT9V022_TEST_PATTERN_ENABLE ) );
     if( enable )
     {
-        value |= MT9V022_TEST_PATTERN_GRAY_VERTICAL | MT9V022_TEST_PATTERN_ENABLE;
+        value |= MT9V022_TEST_PATTERN_GRAY_DIAGONAL | MT9V022_TEST_PATTERN_ENABLE;
     }
 
     __mt9v022_write( MT9V022_REG_TEST_PATTERN, value );
