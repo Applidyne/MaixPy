@@ -110,6 +110,12 @@ static const Register_t mt9v022_reg_defaults[] =
     //   .mask    = 0,
     //   .value   = MT9V022_REG_AEGC_DESIRED_BIN_DEF,
     //   .wait_ms = 0 },
+
+    { .reg     = MT9V022_REG_AEC_AGC_ENABLE,
+      .mask    = 0,
+      .value   = MT9V022_AEC_ENABLE | MT9V022_AGC_ENABLE,
+      .wait_ms = 0 },
+
     { .reg     = MT9V022_REG_AEC_LPF,
       .mask    = 0,
       .value   = MT9V022_AEC_LPF_DEF,
