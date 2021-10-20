@@ -160,12 +160,12 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
 {
     { .reg     = MT9V022_REG_COLUMN_START,
       .mask    = 0,
-      .value   = 56 / 4,
+      .value   = (MT9V022_WINDOW_WIDTH_DEF - 640) / 2,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_WINDOW_WIDTH,
       .mask    = 0,
-      .value   = 640 / 4,
+      .value   = 640,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_ROW_START,
@@ -175,12 +175,12 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
 
     { .reg     = MT9V022_REG_WINDOW_HEIGHT,
       .mask    = 0,
-      .value   = MT9V022_WINDOW_HEIGHT_DEF / 4,
+      .value   = MT9V022_WINDOW_HEIGHT_DEF,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
-      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_4_DEF,
+      .value   = MT9V022_HORIZONTAL_BLANKING_DEF,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
@@ -192,7 +192,7 @@ static const Register_t mt9v022_reg_framesize_QQVGA[] =
       .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
                | MT9V022_READ_MODE_COLUMN_BIN_MASK,
       .value   = (2 << MT9V022_READ_MODE_ROW_BIN_SHIFT)
-               | (2 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
+               | (1 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
       .wait_ms = 0 },
 
     /* Table End Marker */
@@ -206,12 +206,12 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
 {
     { .reg     = MT9V022_REG_COLUMN_START,
       .mask    = 0,
-      .value   = (MT9V022_WINDOW_WIDTH_DEF - 640) / 4,
+      .value   = (MT9V022_WINDOW_WIDTH_DEF - 640) / 2,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_WINDOW_WIDTH,
       .mask    = 0,
-      .value   = 640 / 2,
+      .value   = 640,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_ROW_START,
@@ -221,12 +221,12 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
 
     { .reg     = MT9V022_REG_WINDOW_HEIGHT,
       .mask    = 0,
-      .value   = MT9V022_WINDOW_HEIGHT_DEF / 2,
+      .value   = MT9V022_WINDOW_HEIGHT_DEF,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
-      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_2_DEF,
+      .value   = MT9V022_HORIZONTAL_BLANKING_DEF,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
@@ -234,11 +234,18 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
       .value   = MT9V022_VERTICAL_BLANKING_DEF,
       .wait_ms = 0 },
 
+    /* In QVGA mode, but with the full sensor width specified as above it
+     * it gets the correct full 320 with in the output (as opposed to the
+     * half width images in the VGA and above sensor sizes). Using the row
+     * binning of 2 into 1 rows we also get the full sensor height in 240
+     * pixels in the output image. So this looks like the correct input
+     * size as we need for the AI/KPU.
+     */
     { .reg     = MT9V022_REG_READ_MODE,
       .mask    = MT9V022_READ_MODE_ROW_BIN_MASK
                | MT9V022_READ_MODE_COLUMN_BIN_MASK,
       .value   = (1 << MT9V022_READ_MODE_ROW_BIN_SHIFT)
-               | (1 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
+               | (0 << MT9V022_READ_MODE_COLUMN_BIN_SHIFT),
       .wait_ms = 0 },
 
     /* Table End Marker */
@@ -272,7 +279,7 @@ static const Register_t mt9v022_reg_framesize_VGA[] =
 
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
-      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
+      .value   = MT9V022_HORIZONTAL_BLANKING_DEF,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
