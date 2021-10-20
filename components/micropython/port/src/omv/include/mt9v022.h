@@ -60,7 +60,7 @@
 
 #define MT9V022_REG_ROW_START                       0x02
 #define         MT9V022_ROW_START_MIN                       4
-#define         MT9V022_ROW_START_DEF                       5
+#define         MT9V022_ROW_START_DEF                       4
 #define         MT9V022_ROW_START_MAX                       482
 
 #define MT9V022_REG_WINDOW_HEIGHT                   0x03
@@ -82,6 +82,7 @@
 #define         MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF       61
 #define         MT9V022_HORIZONTAL_BLANKING_BIN_2_DEF       71
 #define         MT9V022_HORIZONTAL_BLANKING_BIN_4_DEF       91
+#define         MT9V022_HORIZONTAL_BLANKING_DEF             94
 #define         MT9V022_HORIZONTAL_BLANKING_MAX             1023
 
 #define MT9V022_REG_VERTICAL_BLANKING               0x06
@@ -250,14 +251,14 @@
 #define         MT9V022_ROW_NOISE_CORR_ENABLE               (1 << 5)
 #define         MT9V022_ROW_NOISE_CORR_USE_BLK_AVG          (1 << 7)
 
-#define MT9V022_REG_PIXCLK_FV_LV                    0x74
+#define MT9V022_REG_PIXCLK_FV_LV                    0x74    /* SHADOWED */
 #define         MT9V022_PIXEL_CLOCK_INV_LINE                (1 << 0)
 #define         MT9V022_PIXEL_CLOCK_INV_FRAME               (1 << 1)
 #define         MT9V022_PIXEL_CLOCK_XOR_LINE                (1 << 2)
 #define         MT9V022_PIXEL_CLOCK_CONT_LINE               (1 << 3)
 #define         MT9V022_PIXEL_CLOCK_INV_PIXCLK              (1 << 4)
 
-#define MT9V022_REG_TEST_PATTERN                    0x7f
+#define MT9V022_REG_TEST_PATTERN                    0x7f    /* NOT SHADOWED */
                 /* Data used as replacement of ADC input when enabled */
 #define         MT9V022_TEST_PATTERN_DATA_MASK              (1023 << 0)
 #define         MT9V022_TEST_PATTERN_DATA_SHIFT             0
@@ -288,11 +289,6 @@
 #define         MT9V022_AEC_UPDATE_FREQUENCY_DEF            2
 #define         MT9V022_AEC_UPDATE_FREQUENCY_MAX            15
 
-#define MT9V022_REG_AGC_UPDATE_FREQUENCY            0xa9
-#define         MT9V022_AGC_UPDATE_FREQUENCY_MIN            0
-#define         MT9V022_AGC_UPDATE_FREQUENCY_DEF            2
-#define         MT9V022_AGC_UPDATE_FREQUENCY_MAX            15
-
 /*
  * LPF is the low pass filter capability of the chip. Both AEC and AGC have
  * this setting. This limits the speed in which AGC/AEC adjust their settings.
@@ -303,12 +299,17 @@
  * else
  *	next exp = current exp + ((calculated new exp - current exp) / 2^LPF)
  */
-#define MT9V022_REG_AEC_LPF                         0xa8
+#define MT9V022_REG_AEC_LPF                         0xa8    /* SHADOWED */
 #define         MT9V022_AEC_LPF_MIN                         0
 #define         MT9V022_AEC_LPF_DEF                         2
 #define         MT9V022_AEC_LPF_MAX                         2
 
-#define MT9V022_REG_AGC_LPF                         0xaa
+#define MT9V022_REG_AGC_UPDATE_FREQUENCY            0xa9    /* SHADOWED */
+#define         MT9V022_AGC_UPDATE_FREQUENCY_MIN            0
+#define         MT9V022_AGC_UPDATE_FREQUENCY_DEF            2
+#define         MT9V022_AGC_UPDATE_FREQUENCY_MAX            15
+
+#define MT9V022_REG_AGC_LPF                         0xab    /* SHADOWED */
 #define         MT9V022_AGC_LPF_MIN                         0
 #define         MT9V022_AGC_LPF_DEF                         2
 #define         MT9V022_AGC_LPF_MAX                         2
