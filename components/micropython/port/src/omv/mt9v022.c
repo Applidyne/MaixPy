@@ -476,14 +476,14 @@ mt9v022_sleep( sensor_t * sensor, int enable )
 
     if(enable)
     {
-        __mt9v022_write( MT9V022_MONITOR_MODE,
+        __mt9v022_write( MT9V022_REG_MONITOR_MODE,
                          MT9V022_MONITOR_MODE_ENABLE );
-        __mt9v022_write( MT9V022_MONITOR_MODE_CAPTURE_CONTROL,
+        __mt9v022_write( MT9V022_REG_MONITOR_MODE_CAPTURE_CONTROL,
                          MT9V022_MONITOR_MODE_CAPTURE_CONTROL_DEF );
     }
     else
     {
-        __mt9v022_write( MT9V022_MONITOR_MODE, MT9V022_MONITOR_MODE_DISABLE );
+        __mt9v022_write( MT9V022_REG_MONITOR_MODE, MT9V022_MONITOR_MODE_DISABLE );
     }
 
     return 0;
