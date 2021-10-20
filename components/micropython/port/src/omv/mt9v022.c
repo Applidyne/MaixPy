@@ -461,7 +461,7 @@ mt9v022_reset( sensor_t * sensor )
 {
     /* Reinit register configuration */
     __mt9v022_write_registers( mt9v022_reg_defaults );
-    __mt9v022_write_registers( mt9v022_reg_framesize_WVGA );
+
     return 0;
 }
 
