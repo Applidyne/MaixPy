@@ -370,7 +370,7 @@ static const Register_t mt9v022_reg_framesize_WVGA2[] =
 
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
-      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
+      .value   = MT9V022_HORIZONTAL_BLANKING_DEF,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
