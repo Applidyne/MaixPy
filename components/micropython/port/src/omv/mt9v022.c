@@ -256,7 +256,7 @@ static const Register_t mt9v022_reg_framesize_QVGA[] =
  */
 static const Register_t mt9v022_reg_framesize_VGA[] =
 {
-    { .reg     =  MT9V022_REG_COLUMN_START,
+    { .reg     = MT9V022_REG_COLUMN_START,
       .mask    = 0,
       .value   = (MT9V022_WINDOW_WIDTH_DEF - 640) / 2,
       .wait_ms = 0 },
