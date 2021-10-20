@@ -459,6 +459,8 @@ __mt9v022_write_registers( const Register_t * registers )
 static int
 mt9v022_reset( sensor_t * sensor )
 {
+    mp_printf( &mp_plat_print, "%s\n", __func__ );
+
     /* Reinit register configuration */
     __mt9v022_write_registers( mt9v022_reg_defaults );
 
@@ -470,7 +472,7 @@ mt9v022_reset( sensor_t * sensor )
 static int
 mt9v022_sleep( sensor_t * sensor, int enable )
 {
-    printk("%s sensor %p\r\n", __func__, sensor);
+    mp_printf( &mp_plat_print, "%s %d\n", __func__, enable );
 
     if(enable)
     {
