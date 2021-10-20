@@ -445,7 +445,7 @@ __mt9v022_write_registers( const Register_t * registers )
 
         if( registers[i].wait_ms )
         {
-            msleep( registers[i].wait_ms );
+            mp_hal_delay_ms( registers[i].wait_ms );
         }
         i++;
     }
