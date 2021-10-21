@@ -87,17 +87,11 @@ static const Register_t mt9v022_reg_defaults[] =
       .value   = MT9V022_PIXEL_CLOCK_INV_FRAME,
       .wait_ms = 0 },
 
-    // { .reg     = MT9V022_REG_PIXEL_OPERATION_MODE,
-    //   .mask    = 0,
-    //   .value   = MT9V022_PIXEL_OPERATION_MODE_HDR,
-    //   .wait_ms = 0 },
-
-    // { .reg     = MT9V022_REG_READ_MODE,
-    //   .mask    = 0,
-    //   .value   = MT9V022_READ_MODE_RESERVED,
-    //              //| MT9V022_READ_MODE_DARK_COLUMNS
-    //              //| MT9V022_READ_MODE_DARK_ROWS,
-    //   .wait_ms = 0 },
+    { .reg     = MT9V022_REG_PIXEL_OPERATION_MODE,
+      .mask    = MT9V022_PIXEL_OPERATION_MODE_COLOR /* We want monochrome */
+               | MT9V022_PIXEL_OPERATION_MODE_HDR,
+      .value   = MT9V022_PIXEL_OPERATION_MODE_HDR,
+      .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_AEC_AGC_ENABLE,
       .mask    = 0,
