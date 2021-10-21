@@ -144,11 +144,6 @@ static const Register_t mt9v022_reg_defaults[] =
       .value   = MT9V022_BLACK_LEVEL_CALIB_CTRL_AUTO,
       .wait_ms = 0 },
 
-    // { .reg     = MT9V022_REG_TEST_PATTERN,
-    //   .mask    = 0,
-    //   .value   = MT9V022_TEST_PATTERN_NONE,
-    //   .wait_ms = 0 },
-
     /* Table End Marker */
     { 0, 0, 0, 0 }
 };
