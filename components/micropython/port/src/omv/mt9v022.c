@@ -69,15 +69,20 @@ static const Register_t mt9v022_reg_defaults[] =
       .value   = MT9V022_RESET_RELEASE,
       .wait_ms = 10 },
 
-//     { .reg     = MT9V022_REG_CHIP_CONTROL,
-//       .mask    = 0,
-//       .value   = MT9V022_CHIP_CONTROL_PROGRESSIVE_SCAN
-//                  | MT9V022_CHIP_CONTROL_MASTER_MODE
-// //                 | MT9V022_CHIP_CONTROL_SNAPSHOT_MODE
-// //                 | MT9V022_CHIP_CONTROL_DOUT_ENABLE
-// //                 | MT9V022_CHIP_CONTROL_SEQUENTIAL
-//                  | MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR,
-//       .wait_ms = 0 },
+     { .reg     = MT9V022_REG_CHIP_CONTROL,
+       .mask    = MT9V022_CHIP_CONTROL_SCAN_MODE_MASK
+                | MT9V022_CHIP_CONTROL_MASTER_MODE
+//                 | MT9V022_CHIP_CONTROL_SNAPSHOT_MODE
+                | MT9V022_CHIP_CONTROL_DOUT_ENABLE
+                | MT9V022_CHIP_CONTROL_SEQUENTIAL
+                | MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR,
+       .value   = MT9V022_CHIP_CONTROL_SCAN_MODE_PROGRESSIVE
+                | MT9V022_CHIP_CONTROL_MASTER_MODE
+//                 | MT9V022_CHIP_CONTROL_SNAPSHOT_MODE
+                | MT9V022_CHIP_CONTROL_DOUT_ENABLE
+                | MT9V022_CHIP_CONTROL_SEQUENTIAL
+                | MT9V022_CHIP_CONTROL_DEFECT_PIXEL_CORR,
+       .wait_ms = 0 },
 
     /* Configure the polarity of the frame and line signals. The Kendryte
      * expects the frame as vertical sync pulse instead of a frame valid
@@ -314,7 +319,7 @@ static const Register_t mt9v022_reg_framesize_WVGA[] =
 
     { .reg     = MT9V022_REG_HORIZONTAL_BLANKING,
       .mask    = 0,
-      .value   = MT9V022_HORIZONTAL_BLANKING_BIN_1_DEF,
+      .value   = MT9V022_HORIZONTAL_BLANKING_DEF,
       .wait_ms = 0 },
 
     { .reg     = MT9V022_REG_VERTICAL_BLANKING,
