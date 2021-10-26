@@ -91,7 +91,8 @@
 #define         MT9V022_VERTICAL_BLANKING_MAX               3000
 
 #define MT9V022_REG_CHIP_CONTROL                    0x07
-#define         MT9V022_CHIP_CONTROL_PROGRESSIVE_SCAN       (0 << 0)
+#define         MT9V022_CHIP_CONTROL_SCAN_MODE_MASK         (7)
+#define         MT9V022_CHIP_CONTROL_SCAN_MODE_PROGRESSIVE  (0 << 0)
 #define         MT9V022_CHIP_CONTROL_INTERLACED_SCAN_DUAL   (2 << 0)
 #define         MT9V022_CHIP_CONTROL_INTERLACED_SCAN_SINGLE (3 << 0)
 #define         MT9V022_CHIP_CONTROL_MASTER_MODE            (1 << 3)
