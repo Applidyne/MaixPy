@@ -31,6 +31,7 @@
 #include "ov5640.h"
 #include "ov5642.h"
 #include "Maix_config.h"
+#include "gpiohs.h"
 
 extern volatile dvp_t *const dvp;
 
@@ -105,6 +106,7 @@ static struct sensor_config_t {
     uint8_t cmos_pwdn;
     uint8_t cmos_vsync;
     uint8_t cmos_rst;
+    uint8_t cmos_exposure;  /* Toggle to take a picture */
 
     uint8_t reg_width;
     uint8_t i2c_num;
@@ -113,9 +115,12 @@ static struct sensor_config_t {
     uint8_t gpio_clk;
     uint8_t gpio_sda;
 } sensor_config = {
-    47, 46, 45, 44, 43, 42,
-    8, 2, 41, 40, 0, 0
+    47, 46, 43, 44, 45, 42, 39,
+    8, -1, 41, 40, 0, 0
 };
+
+/* TODO: A bit of hack */
+static uint8_t gpio_exposure = 23;
 
 #define SENSOR_CHECK_CONFIG(GOAL, val)                                                                        \
     {                                                                                                         \
@@ -137,19 +142,20 @@ void sensor_load_config(struct sensor_config_t *sensor_cfg)
     {
         mp_obj_dict_t *self = MP_OBJ_TO_PTR(tmp);
 
-        SENSOR_CHECK_CONFIG(cmos_pclk, &sensor_cfg->cmos_pclk);
-        SENSOR_CHECK_CONFIG(cmos_xclk, &sensor_cfg->cmos_xclk);
-        SENSOR_CHECK_CONFIG(cmos_href, &sensor_cfg->cmos_href);
-        SENSOR_CHECK_CONFIG(cmos_pwdn, &sensor_cfg->cmos_pwdn);
-        SENSOR_CHECK_CONFIG(cmos_vsync, &sensor_cfg->cmos_vsync);
-        SENSOR_CHECK_CONFIG(cmos_rst, &sensor_cfg->cmos_rst);
+        SENSOR_CHECK_CONFIG(cmos_pclk,     &sensor_cfg->cmos_pclk);
+        SENSOR_CHECK_CONFIG(cmos_xclk,     &sensor_cfg->cmos_xclk);
+        SENSOR_CHECK_CONFIG(cmos_href,     &sensor_cfg->cmos_href);
+        SENSOR_CHECK_CONFIG(cmos_pwdn,     &sensor_cfg->cmos_pwdn);
+        SENSOR_CHECK_CONFIG(cmos_vsync,    &sensor_cfg->cmos_vsync);
+        SENSOR_CHECK_CONFIG(cmos_rst,      &sensor_cfg->cmos_rst);
+        SENSOR_CHECK_CONFIG(cmos_exposure, &sensor_cfg->cmos_exposure);
 
-        SENSOR_CHECK_CONFIG(reg_width, &sensor_cfg->reg_width);
-        SENSOR_CHECK_CONFIG(i2c_num, &sensor_cfg->i2c_num);
-        SENSOR_CHECK_CONFIG(pin_clk, &sensor_cfg->pin_clk);
-        SENSOR_CHECK_CONFIG(pin_sda, &sensor_cfg->pin_sda);
-        SENSOR_CHECK_CONFIG(gpio_clk, &sensor_cfg->gpio_clk);
-        SENSOR_CHECK_CONFIG(gpio_sda, &sensor_cfg->gpio_sda);
+        SENSOR_CHECK_CONFIG(reg_width,     &sensor_cfg->reg_width);
+        SENSOR_CHECK_CONFIG(i2c_num,       &sensor_cfg->i2c_num);
+        SENSOR_CHECK_CONFIG(pin_clk,       &sensor_cfg->pin_clk);
+        SENSOR_CHECK_CONFIG(pin_sda,       &sensor_cfg->pin_sda);
+        SENSOR_CHECK_CONFIG(gpio_clk,      &sensor_cfg->gpio_clk);
+        SENSOR_CHECK_CONFIG(gpio_sda,      &sensor_cfg->gpio_sda);
     }
 }
 
@@ -182,7 +188,9 @@ static int sensor_irq(void *ctx)
                 {
                     // g_dvp_finish_flag = 0;
                     // printk("--%d\r\n",g_sensor_buff_index_in);
-                    dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in], (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h * 2));
+                    dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in],
+                                    (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                                    (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
                     dvp_set_display_addr((uint32_t)MAIN_FB()->pixels[g_sensor_buff_index_in]);
                     dvp_start_convert();
                 }
@@ -193,7 +201,9 @@ static int sensor_irq(void *ctx)
                 {
                     // g_dvp_finish_flag = 0;
                     // printk("==%d\r\n",g_sensor_buff_index_in);
-                    dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in], (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h * 2));
+                    dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in],
+                                    (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                                    (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
                     dvp_set_display_addr((uint32_t)MAIN_FB()->pixels[g_sensor_buff_index_in]);
                     dvp_start_convert();
                 }
@@ -551,6 +561,8 @@ int sensor_gc_detect(sensor_t *sensor, bool pwnd)
 
 int sensor_mt_detect( sensor_t *sensor, bool pwnd )
 {
+    mp_printf( &mp_plat_print, "[MAIXPY]: looking for MT sensors. pwnd=%d\n", pwnd );
+
     if (pwnd)
     {
         /* STANDBY pin on sensor. Low is powered on */
@@ -575,32 +587,32 @@ int sensor_mt_detect( sensor_t *sensor, bool pwnd )
         sensor->flush    = sensor_flush;
         mt9v022_init( sensor );
     }
-    else if( mt9v111_detect( sensor ) )
-    {
-        mp_printf( &mp_plat_print, "[MAIXPY]: found MT9V111 id %x on %x\n",
-                                   sensor->chip_id,
-                                   sensor->slv_addr );
-        sensor->snapshot = sensor_snapshot;
-        sensor->flush    = sensor_flush;
-        mt9v111_init( sensor );
-    }
+    // else if( mt9v111_detect( sensor ) )
+    // {
+    //     mp_printf( &mp_plat_print, "[MAIXPY]: found MT9V111 id %x on %x\n",
+    //                                sensor->chip_id,
+    //                                sensor->slv_addr );
+    //     sensor->snapshot = sensor_snapshot;
+    //     sensor->flush    = sensor_flush;
+    //     mt9v111_init( sensor );
+    // }
     else
     {
-        /* Check for older MT9D111 */
-        uint16_t id = cambus_scan_mt9d111();
-        if (MT9D111_ID_CODE == id)
-        {
-            mp_printf(&mp_plat_print, "[MAIXPY]: found MT9D111\n");
-            sensor->slv_addr = MT9D111_CONFIG_I2C_ID;
-            sensor->chip_id  = id;
-            sensor->snapshot = sensor_snapshot;
-            sensor->flush    = sensor_flush;
-            mt9d111_init(sensor);
-        }
-        else
-        {
+        // /* Check for older MT9D111 */
+        // uint16_t id = cambus_scan_mt9d111();
+        // if (MT9D111_ID_CODE == id)
+        // {
+        //     mp_printf(&mp_plat_print, "[MAIXPY]: found MT9D111\n");
+        //     sensor->slv_addr = MT9D111_CONFIG_I2C_ID;
+        //     sensor->chip_id  = id;
+        //     sensor->snapshot = sensor_snapshot;
+        //     sensor->flush    = sensor_flush;
+        //     mt9d111_init(sensor);
+        // }
+        // else
+        // {
             return -3;  /* No more MT sensors found */
-        }
+        // }
     }
     return 0;
 }
@@ -612,12 +624,35 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
 
     sensor_load_config(&sensor_config);
 
-    fpioa_set_function(sensor_config.cmos_pclk,  FUNC_CMOS_PCLK);
-    fpioa_set_function(sensor_config.cmos_xclk,  FUNC_CMOS_XCLK);
-    fpioa_set_function(sensor_config.cmos_href,  FUNC_CMOS_HREF);
-    fpioa_set_function(sensor_config.cmos_pwdn,  FUNC_CMOS_PWDN);
-    fpioa_set_function(sensor_config.cmos_vsync, FUNC_CMOS_VSYNC);
-    fpioa_set_function(sensor_config.cmos_rst,   FUNC_CMOS_RST);
+    fpioa_set_function(sensor_config.cmos_pclk,     FUNC_CMOS_PCLK);
+    fpioa_set_function(sensor_config.cmos_xclk,     FUNC_CMOS_XCLK);
+    fpioa_set_function(sensor_config.cmos_href,     FUNC_CMOS_HREF);
+    fpioa_set_function(sensor_config.cmos_pwdn,     FUNC_CMOS_PWDN);
+    fpioa_set_function(sensor_config.cmos_vsync,    FUNC_CMOS_VSYNC);
+    fpioa_set_function(sensor_config.cmos_rst,      FUNC_CMOS_RST);
+
+    // TODO: This is a hack to see if we can get it to work.
+    // cmos_exposure pin 39 -> gpiohs 23
+    gpio_exposure = 23;
+    fpioa_set_function(sensor_config.cmos_exposure, FUNC_GPIOHS0 + gpio_exposure );
+    gpiohs_set_drive_mode( gpio_exposure, GPIO_DM_OUTPUT );
+    gpiohs_set_pin( gpio_exposure, GPIO_PV_LOW );
+
+    /* MT9V022 has positive going FRAME_VALID pulses. OV2640 has positive blanking pulses.
+     * This configuration should be done as part of the hw_flags setting per sensor
+     */
+    /* May no longer be needed with the use of MT9V022_REG_PIXCLK_FV_LV */
+    //fpioa_set_di_inv(sensor_config.cmos_vsync, 1);  /* MT9V022 has positive going FRAME_VALID pulses */
+    //fpioa_set_di_inv(sensor_config.cmos_href,  1);  /* OV2640 has positive line valid pulses also */
+
+    mp_printf(&mp_plat_print,
+              "[MAIXPY]: sensor_config cmos_pclk %d cmos_xclk %d cmos_href %d cmos_pwdn %d cmos_vsync %d cmos_rst %d\n",
+              sensor_config.cmos_pclk,
+              sensor_config.cmos_xclk,
+              sensor_config.cmos_href,
+              sensor_config.cmos_pwdn,
+              sensor_config.cmos_vsync,
+              sensor_config.cmos_rst );
 
     // fpioa_set_function(41, FUNC_SCCB_SCLK);
     // fpioa_set_function(40, FUNC_SCCB_SDA);
@@ -633,14 +668,16 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
     );
 
     // Initialize dvp interface
-    dvp_set_xclk_rate(freq);
+    int calculated_clock = dvp_set_xclk_rate(freq);
+    mp_printf(&mp_plat_print, "[MAIXPY]: sensor xlck %d\n", calculated_clock );
 
     /* Some sensors have different reset polarities, and we can't know which sensor
     is connected before initializing cambus and probing the sensor, which in turn
     requires pulling the sensor out of the reset state. So we try to probe the
     sensor with both polarities to determine line state. */
     sensor.pwdn_pol  = ACTIVE_HIGH;
-    sensor.reset_pol = ACTIVE_HIGH;
+    sensor.reset_pol = ACTIVE_LOW;
+
     DCMI_PWDN_HIGH();
     mp_hal_delay_ms(10);
     DCMI_PWDN_LOW();
@@ -648,27 +685,28 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
 
     bool limit = sensor.choice_dev != 0;
 
-    cambus_set_writeb_delay(10);
+    //cambus_set_writeb_delay(10);
 
     mp_printf(&mp_plat_print, "[MAIXPY]: find sensors choice_dev %d\n", sensor.choice_dev);
 
-    if ((limit == false || sensor.choice_dev == 1) && 0 == sensor_ov_detect(&sensor))
-    {
-        // found ov sensor
-        mp_printf(&mp_plat_print, "[MAIXPY]: found ov sensor id 0x%x\n", sensor.chip_id );
-        pwdn_lock = 1;
-    }
-    else if ((limit == false || sensor.choice_dev == 2) && 0 == sensor_gc_detect(&sensor, true))
-    {
-        // found gc sensor
-        mp_printf(&mp_plat_print, "[MAIXPY]: found gc sensor id 0x%x\n", sensor.chip_id );
-        cambus_set_writeb_delay(2);
-    }
-    else if ( (limit == false || sensor.choice_dev == 3) && 0 == sensor_mt_detect(&sensor, true))
+    // if ((limit == false || sensor.choice_dev == 1) && 0 == sensor_ov_detect(&sensor))
+    // {
+    //     // found ov sensor
+    //     mp_printf(&mp_plat_print, "[MAIXPY]: found ov sensor id 0x%x\n", sensor.chip_id );
+    //     pwdn_lock = 1;
+    // }
+    // else if ((limit == false || sensor.choice_dev == 2) && 0 == sensor_gc_detect(&sensor, true))
+    // {
+    //     // found gc sensor
+    //     mp_printf(&mp_plat_print, "[MAIXPY]: found gc sensor id 0x%x\n", sensor.chip_id );
+    //     cambus_set_writeb_delay(2);
+    // }
+    // else
+    if ( (limit == false || sensor.choice_dev == 3) && 0 == sensor_mt_detect(&sensor, true))
     {
         // found mt sensor
         mp_printf(&mp_plat_print, "[MAIXPY]: found mt sensor id 0x%x\n", sensor.chip_id );
-        cambus_set_writeb_delay(2);
+        //cambus_set_writeb_delay(2);
     }
     else
     {
@@ -682,19 +720,30 @@ int sensor_init_dvp(mp_int_t freq, bool default_freq)
         dvp_set_xclk_rate(22000000);
     }
 
-    dvp_set_image_format(DVP_CFG_YUV_FORMAT);
-    dvp_disable_burst();
+    mp_printf(&mp_plat_print, "[MAIXPY]: sensor format\n" );
+    //dvp_enable_burst();         /* Needs to be set before image size is set */
+	//dvp_enable_auto();
+    dvp_disable_burst();      /* Needs to be set before image size is set */
 	dvp_disable_auto();
-	dvp_set_output_enable(0, 1);	//enable to AI
-	dvp_set_output_enable(1, 1);	//enable to lcd
+    dvp_set_image_format(DVP_CFG_Y_FORMAT);
+    dvp_set_output_enable(0, 1);	//enable to AI
+	dvp_set_output_enable(1, 0);	//enable to lcd
     if(sensor.size_set)
     {
+        // MAIN_FB()->w and MAIN_FB()->h appear to be 0 here. MH tried
+        // changing them to the w_max and h_max values but restarting
+        // the sensor then results in hangups and crashes.
+        mp_printf(&mp_plat_print, "[MAIXPY]: sensor size set %d x %d (w %d h %d)\n", MAIN_FB()->w_max, MAIN_FB()->h_max, MAIN_FB()->w, MAIN_FB()->h );
         dvp_set_image_size(MAIN_FB()->w_max, MAIN_FB()->h_max);
 #if CONFIG_MAIXPY_OMV_DOUBLE_BUFF
-        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in], (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h * 2));
+        dvp_set_ai_addr( (uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in],
+                         (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                         (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
         dvp_set_display_addr((uint32_t)MAIN_FB()->pixels[g_sensor_buff_index_in]);
 #else
-        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai, (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h * 2));
+        dvp_set_ai_addr( (uint32_t)MAIN_FB()->pix_ai,
+                         (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                         (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
         dvp_set_display_addr((uint32_t)MAIN_FB()->pixels);
 #endif
     }
@@ -734,11 +783,13 @@ int sensor_reset(mp_int_t freq, bool default_freq, bool set_regs, bool double_bu
 
     sensor_init_fb(); //init FB
 
+    mp_printf(&mp_plat_print, "[MAIXPY]: sensor init %d\n", freq );
     if (sensor_init_dvp(freq, default_freq) != 0)
     {
         //init pins, scan I2C, do ov2640 init
         return -1;
     }
+    mp_printf(&mp_plat_print, "[MAIXPY]: sensor init OK\n" );
 
     // Reset the sensor state
     sensor.sde = 0;
@@ -754,6 +805,7 @@ int sensor_reset(mp_int_t freq, bool default_freq, bool set_regs, bool double_bu
     // Call sensor-specific reset function
     if (set_regs)
     {
+        mp_printf(&mp_plat_print, "[MAIXPY]: sensor reset\n" );
         if (sensor.reset(&sensor) != 0)
         { //rst reg, set default cfg.
             return -1;
@@ -765,6 +817,7 @@ int sensor_reset(mp_int_t freq, bool default_freq, bool set_regs, bool double_bu
     sensor.reset_set = true;
     if (sensor.size_set)
     {
+        mp_printf(&mp_plat_print, "[MAIXPY]: sensor run\n" );
         sensor_run(1);
     }
     // mp_printf(&mp_plat_print, "[MAIXPY]: exit sensor_reset\n");
@@ -938,12 +991,12 @@ int binocular_sensor_reset(mp_int_t freq)
     sensor_init_fb(); //init FB
     sensor_load_config(&sensor_config);
 
-    fpioa_set_function(sensor_config.cmos_pclk, FUNC_CMOS_PCLK);
-    fpioa_set_function(sensor_config.cmos_xclk, FUNC_CMOS_XCLK);
-    fpioa_set_function(sensor_config.cmos_href, FUNC_CMOS_HREF);
-    fpioa_set_function(sensor_config.cmos_pwdn, FUNC_CMOS_PWDN);
+    fpioa_set_function(sensor_config.cmos_pclk,  FUNC_CMOS_PCLK);
+    fpioa_set_function(sensor_config.cmos_xclk,  FUNC_CMOS_XCLK);
+    fpioa_set_function(sensor_config.cmos_href,  FUNC_CMOS_HREF);
+    fpioa_set_function(sensor_config.cmos_pwdn,  FUNC_CMOS_PWDN);
     fpioa_set_function(sensor_config.cmos_vsync, FUNC_CMOS_VSYNC);
-    fpioa_set_function(sensor_config.cmos_rst, FUNC_CMOS_RST);
+    fpioa_set_function(sensor_config.cmos_rst,   FUNC_CMOS_RST);
 
     /* Do a power cycle */
     DCMI_PWDN_HIGH();
@@ -1005,10 +1058,14 @@ int binocular_sensor_reset(mp_int_t freq)
     {
         dvp_set_image_size(MAIN_FB()->w_max, MAIN_FB()->h_max);
 #if CONFIG_MAIXPY_OMV_DOUBLE_BUFF
-        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in], (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h * 2));
+        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in],
+                        (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                        (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
         dvp_set_display_addr((uint32_t)MAIN_FB()->pixels[g_sensor_buff_index_in]);
 #else
-        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai, (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h * 2));
+        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai,
+                        (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                        (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
         dvp_set_display_addr((uint32_t)MAIN_FB()->pixels);
 #endif
     }
@@ -1150,7 +1207,7 @@ int sensor_set_pixformat(pixformat_t pixformat, bool set_regs)
     // Set pixel format
     sensor.pixformat = pixformat;
     // Skip the first frame.
-    MAIN_FB()->bpp = -1;
+    //MAIN_FB()->bpp = -1;
     g_set_pixformat_regs = set_regs;
 
     return 0;
@@ -1243,10 +1300,14 @@ int sensor_set_framesize(framesize_t framesize, bool set_regs)
     {
         dvp_set_image_size(MAIN_FB()->w_max, MAIN_FB()->h_max);
 #if CONFIG_MAIXPY_OMV_DOUBLE_BUFF
-        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in], (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h * 2));
+        dvp_set_ai_addr( (uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in],
+                         (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                         (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
         dvp_set_display_addr((uint32_t)MAIN_FB()->pixels[g_sensor_buff_index_in]);
 #else
-        dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai, (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h * 2));
+        dvp_set_ai_addr( (uint32_t)MAIN_FB()->pix_ai,
+                         (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                         (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
         dvp_set_display_addr((uint32_t)MAIN_FB()->pixels);
 #endif
         sensor_run(1);
@@ -1287,9 +1348,13 @@ int sensor_set_windowing(int x, int y, int w, int h)
     }
 	dvp_set_image_size(w, h);	//set QVGA default
 #if CONFIG_MAIXPY_OMV_DOUBLE_BUFF
-    dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in], (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + MAIN_FB()->w * MAIN_FB()->h * 2));
+    dvp_set_ai_addr( (uint32_t)MAIN_FB()->pix_ai[g_sensor_buff_index_in],
+                     (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                     (uint32_t)(MAIN_FB()->pix_ai[g_sensor_buff_index_in] + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
 #else
-    dvp_set_ai_addr((uint32_t)MAIN_FB()->pix_ai, (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h), (uint32_t)(MAIN_FB()->pix_ai + MAIN_FB()->w * MAIN_FB()->h * 2));
+    dvp_set_ai_addr( (uint32_t)MAIN_FB()->pix_ai,
+                     (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h     ) ),
+                     (uint32_t)(MAIN_FB()->pix_ai + ( MAIN_FB()->w * MAIN_FB()->h * 2 ) ) );
 #endif
     return 0;
 }
@@ -1628,6 +1693,7 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, streaming_cb_t streaming_c
     bool streaming = (streaming_cb != NULL); // Streaming mode.
     if (image == NULL)
         return -1;
+
     // Compress the framebuffer for the IDE preview, only if it's not the first frame,
     // the framebuffer is enabled and the image sensor does not support JPEG encoding.
     // Note: This doesn't run unless the IDE is connected and the framebuffer is enabled.
@@ -1700,6 +1766,11 @@ int sensor_snapshot(sensor_t *sensor, image_t *image, streaming_cb_t streaming_c
             mp_printf(&mp_plat_print, "[MAIXPY]: %s | bpp error\n", __func__);
             return -1;
         }
+
+        /* Trigger exposure on sensor */
+        gpiohs_set_pin( gpio_exposure, GPIO_PV_HIGH );
+        _ndelay(1000);
+        gpiohs_set_pin( gpio_exposure, GPIO_PV_LOW );
 
 #if CONFIG_MAIXPY_OMV_DOUBLE_BUFF
         if (sensor->double_buff)

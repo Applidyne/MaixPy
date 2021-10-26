@@ -19,9 +19,10 @@
 #include "sysctl.h"
 #include "fpioa.h"
 #include "sipeed_i2c.h"
+#include "soft_i2c.h"
 #include "mphalport.h"
 
-static uint32_t write_bus_delay = 10; //ms
+static uint32_t write_bus_delay = 0; /* Originally 10 ms */
 
 void cambus_set_writeb_delay(uint32_t delay)
 {
@@ -35,18 +36,20 @@ int sccb_i2c_init(int8_t i2c, uint8_t pin_clk, uint8_t pin_sda, uint8_t gpio_clk
 {
     if (i2c == -2)
     {
-        // dvp_sccb_set_clk_rate(1000000);
+        mp_printf(&mp_plat_print, "sccb_i2c_init: SCCB %ld\n", freq );
+        dvp_sccb_set_clk_rate(freq);
         fpioa_set_function(pin_clk, FUNC_SCCB_SCLK);
         fpioa_set_function(pin_sda, FUNC_SCCB_SDA);
     }
     else if (i2c == -1)
     {
+        soft_i2c_init( pin_clk, pin_sda, 7, freq );
     }
     else
     {
+        mp_printf(&mp_plat_print, "sccb_i2c_init: I2C%d %ld\n", i2c, freq );
         if (i2c > 2 || i2c < 0)
             return -1;
-        mp_printf(&mp_plat_print, "init i2c:%d freq:%d\r\n", i2c, freq);
         fpioa_set_function(pin_clk, FUNC_I2C0_SCLK + i2c * 2);
         fpioa_set_function(pin_sda, FUNC_I2C0_SDA + i2c * 2);
         maix_i2c_init((i2c_device_number_t)i2c, 7, freq);
@@ -58,10 +61,24 @@ int sccb_i2c_write_byte(int8_t i2c, uint8_t addr, uint16_t reg, uint8_t reg_len,
 {
     if (i2c == -2)
     {
-        dvp_sccb_send_data(addr, reg, data);
+        dvp_sccb_send_data(addr<<1, reg, data);
     }
     else if (i2c == -1)
     {
+        uint8_t buf[3];
+        if( reg_len == 8 )
+        {
+            buf[0] = reg;
+            buf[1] = data;
+            return soft_i2c_send_data( addr, buf, 2, timeout_ms );
+        }
+        else
+        {
+            buf[0] = (reg >> 8) & 0xFF;
+            buf[1] = reg & 0xFF;
+            buf[2] = data;
+            return soft_i2c_send_data( addr, buf, 3, timeout_ms );
+        }
     }
     else
     {
@@ -72,28 +89,114 @@ int sccb_i2c_write_byte(int8_t i2c, uint8_t addr, uint16_t reg, uint8_t reg_len,
         {
             tmp[0] = reg & 0xFF;
             tmp[1] = data;
-            return maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 2, 10);
+            return maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 2, timeout_ms);
         }
         else
         {
             tmp[0] = (reg >> 8) & 0xFF;
             tmp[1] = reg & 0xFF;
             tmp[2] = data;
-            return maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 3, 10);
+            return maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 3, timeout_ms);
         }
     }
     return 0;
 }
 
-int sccb_i2c_read_byte(int8_t i2c, uint8_t addr, uint16_t reg, uint8_t reg_len, uint8_t *data, uint16_t timeout_ms)
+int sccb_i2c_write_word(int8_t i2c, uint8_t addr, uint16_t reg, uint8_t reg_len, uint16_t data, uint16_t timeout_ms)
 {
-    *data = 0;
     if (i2c == -2)
     {
-        *data = dvp_sccb_receive_data(addr, reg);
+        // TODO
+        //dvp_sccb_send_data(addr<<1, reg, data);
     }
     else if (i2c == -1)
     {
+        uint8_t buf[4];
+        if( reg_len == 8 )
+        {
+            buf[0] = reg;
+            buf[1] = (data << 8);
+            buf[2] = (data & 0xff);
+            return soft_i2c_send_data( addr, buf, 3, timeout_ms );
+        }
+        else
+        {
+            buf[0] = (reg >> 8) & 0xFF;
+            buf[1] = reg & 0xFF;
+            buf[2] = (data << 8);
+            buf[3] = (data & 0xff);
+            return soft_i2c_send_data( addr, buf, 4, timeout_ms );
+        }
+    }
+    else
+    {
+        if (i2c > 2 || i2c < 0)
+            return -1;
+        uint8_t tmp[4];
+        if (reg_len == 8)
+        {
+            tmp[0] = reg & 0xFF;
+            tmp[1] = (data << 8);
+            tmp[2] = (data & 0xff);
+            return maix_i2c_send_data( (i2c_device_number_t)i2c, addr, tmp, 3, timeout_ms );
+        }
+        else
+        {
+            tmp[0] = (reg >> 8) & 0xFF;
+            tmp[1] = reg & 0xFF;
+            tmp[2] = (data << 8);
+            tmp[3] = (data & 0xff);
+            return maix_i2c_send_data( (i2c_device_number_t)i2c, addr, tmp, 4, timeout_ms );
+        }
+    }
+    return 0;
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+int sccb_i2c_read_byte(int8_t i2c, uint8_t addr, uint16_t reg, uint8_t reg_len, uint8_t *data, uint16_t timeout_ms)
+{
+    int ret = -1;
+    *data = 0;
+    if (i2c == -2)
+    {
+        ret = 0;
+        *data = dvp_sccb_receive_data(addr<<1, reg);
+        if( *data == 0xFF )
+        {
+            ret = -1;
+        }
+        mp_printf(&mp_plat_print, "[sccb_i2c_read_byte] SCCB I2C %d adr %x reg %x ret %d data %x\n", i2c, addr, reg, ret, *data );
+        return ret;
+    }
+    else if (i2c == -1)
+    {
+        uint8_t buf[3];
+        if( reg_len == 8 )
+        {
+            buf[0] = reg;
+            // ret = soft_i2c_send_data( addr, buf, 1, 10 );
+            // mp_printf(&mp_plat_print, "[soft_i2c_send_data] adr %x reg %x ret %d\n", addr, reg, ret );
+            // if( ret )
+            // {
+                ret = soft_i2c_recv_data( addr, buf, 1, data, 1, 10 );
+                // mp_printf(&mp_plat_print, "[soft_i2c_recv_data] adr %x reg %x ret %d data %x\n", addr, reg, ret, *data );
+            // }
+            //mp_printf(&mp_plat_print, "[soft_i2c_read_byte] adr %x reg %x ret %d data %x\n", addr, reg, ret, *data );
+            return ret;
+        }
+        else
+        {
+            buf[0] = (reg >> 8) & 0xFF;
+            buf[1] = reg & 0xFF;
+            ret = soft_i2c_send_data( addr, buf, 2, 10 );
+            if( ret == 0 )
+            {
+                ret = soft_i2c_recv_data( addr, NULL, 0, data, 1, 10 );
+            }
+            //mp_printf(&mp_plat_print, "[soft_i2c_read_byte] adr %x reg %x ret %d data %x\n", addr, reg, ret, *data );
+            return ret;
+        }
     }
     else
     {
@@ -103,23 +206,28 @@ int sccb_i2c_read_byte(int8_t i2c, uint8_t addr, uint16_t reg, uint8_t reg_len, 
         if (reg_len == 8)
         {
             tmp[0] = reg & 0xFF;
-            maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 1, 10);
-            int ret = maix_i2c_recv_data((i2c_device_number_t)i2c, addr, NULL, 0, data, 1, 10);
+            ret = maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 1,  10);
+            if( ret == 0 )
+            {
+                ret = maix_i2c_recv_data((i2c_device_number_t)i2c, addr, NULL, 0, data, 1, 10);
+            }
+            mp_printf(&mp_plat_print, "[sccb_i2c_read_byte] I2C%d adr %x reg %x ret %d data %x\n", i2c, addr, reg, ret, *data );
             return ret;
         }
         else
         {
             tmp[0] = (reg >> 8) & 0xFF;
             tmp[1] = reg & 0xFF;
-            int ret = maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 2, 10);
-            if (ret != 0)
-                return ret;
-            ret = maix_i2c_recv_data((i2c_device_number_t)i2c, addr, NULL, 0, data, 1, 10);
-            return ret;
+            ret = maix_i2c_send_data((i2c_device_number_t)i2c, addr, tmp, 2, 10);
+            if( ret == 0 )
+            {
+                ret = maix_i2c_recv_data((i2c_device_number_t)i2c, addr, NULL, 0, data, 1, 10);
+            }
         }
     }
-    return 0;
+    return ret;
 }
+
 
 int sccb_i2c_receive_byte(int8_t i2c, uint8_t addr, uint8_t *data, uint16_t timeout_ms)
 {
@@ -151,12 +259,15 @@ static int8_t i2c_device = -2;
  */
 int cambus_init(uint8_t reg_wid, int8_t i2c, int8_t pin_clk, int8_t pin_sda, uint8_t gpio_clk, uint8_t gpio_sda)
 {
+    mp_printf(&mp_plat_print, "cambus_init i2c %d clk %d dat %d\n", i2c, pin_clk, pin_sda );
+
     dvp_init(reg_wid);
     sccb_reg_width = reg_wid;
     if (pin_clk < 0 || pin_sda < 0)
         return -1;
     i2c_device = i2c;
-    sccb_i2c_init(i2c_device, pin_clk, pin_sda, gpio_clk, gpio_sda, 100000);
+    sccb_i2c_init(i2c_device, pin_clk, pin_sda, gpio_clk, gpio_sda, 125000);
+    //sccb_i2c_init(i2c_device, pin_clk, pin_sda, gpio_clk, gpio_sda, 200000);
     return 0;
 }
 
@@ -293,10 +404,14 @@ int cambus_scan_mt9d111(void)
     return id;
 }
 
-int cambus_readb(uint8_t slv_addr, uint16_t reg_addr, uint8_t *reg_data)
+int cambus_readb(uint8_t slv_addr, uint16_t reg_addr, uint8_t * reg_data)
 {
-    int ret = 0;
-    sccb_i2c_read_byte(i2c_device, slv_addr, reg_addr, sccb_reg_width, reg_data, 10);
+    int ret = sccb_i2c_read_byte(i2c_device, slv_addr, reg_addr, sccb_reg_width, reg_data, 10);
+
+    // mp_printf( &mp_plat_print,
+    //            "[cambus_readb]: dev %d addr 0x%x ret %d reg 0x%x: 0x%x\n",
+    //            i2c_device, slv_addr, ret, (reg_addr & 0xff), *reg_data );
+
     if (0xff == *reg_data)
         ret = -1;
 
@@ -305,19 +420,39 @@ int cambus_readb(uint8_t slv_addr, uint16_t reg_addr, uint8_t *reg_data)
 
 int cambus_writeb(uint8_t slv_addr, uint16_t reg_addr, uint8_t reg_data)
 {
-    sccb_i2c_write_byte(i2c_device, slv_addr, reg_addr, sccb_reg_width, reg_data, 10);
-    mp_hal_delay_ms(write_bus_delay);
-    return 0;
+    int ret = sccb_i2c_write_byte(i2c_device, slv_addr, reg_addr, sccb_reg_width, reg_data, 10);
+
+    // mp_printf( &mp_plat_print,
+    //            "[cambus_writeb]: dev %d addr 0x%x ret %d reg 0x%x: 0x%x\n",
+    //            i2c_device, slv_addr, ret, (reg_addr & 0xff), reg_data );
+
+    if( write_bus_delay )
+    {
+        mp_hal_delay_ms(write_bus_delay);
+    }
+
+    return ret;
 }
 
-int cambus_readw(uint8_t slv_addr, uint16_t reg_addr, uint16_t *reg_data)
+int cambus_readw(uint8_t slv_addr, uint16_t reg_addr, uint16_t * reg_word )
 {
     return 0;
 }
 
-int cambus_writew(uint8_t slv_addr, uint16_t reg_addr, uint16_t reg_data)
+int cambus_writew( uint8_t slv_addr, uint16_t reg_addr, uint16_t reg_word )
 {
-    return 0;
+    int ret = sccb_i2c_write_word(i2c_device, slv_addr, reg_addr, sccb_reg_width, reg_word, 10);
+
+    mp_printf( &mp_plat_print,
+               "[cambus_writew]: dev %d addr 0x%x ret %d reg 0x%x: 0x%x\n",
+               i2c_device, slv_addr, ret, (reg_addr & 0xff), reg_word );
+
+    if( write_bus_delay )
+    {
+        mp_hal_delay_ms( write_bus_delay );
+    }
+
+    return ret;
 }
 
 int cambus_readw2(uint8_t slv_addr, uint16_t reg_addr, uint16_t *reg_data)
