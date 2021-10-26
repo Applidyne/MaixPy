@@ -68,7 +68,7 @@ void maix_i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address,
 {
     configASSERT(address_width == 7 || address_width == 10);
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
-    
+
     maix_slave_context[i2c_num].i2c_num = i2c_num;
     maix_slave_context[i2c_num].slave_handler = handler;
 
@@ -93,8 +93,8 @@ void maix_i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address,
 #define time_ms() (unsigned long)(read_csr(mcycle)/(sysctl_clock_get_freq(SYSCTL_CLOCK_CPU)/1000))
 
 /**
- * 
- * @reutrn 0: success  
+ *
+ * @reutrn 0: success
  *        <0: error
  */
 int maix_i2c_send_data(i2c_device_number_t i2c_num, uint32_t slave_address, const uint8_t *send_buf, size_t send_buf_len, uint16_t timeout_ms)
@@ -161,8 +161,8 @@ int maix_i2c_send_data(i2c_device_number_t i2c_num, uint32_t slave_address, cons
 
 
 /**
- * 
- * @reutrn 0: success  
+ *
+ * @reutrn 0: success
  *        <0: error
  */
 int maix_i2c_recv_data(i2c_device_number_t i2c_num, uint32_t slave_address, const uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf,
@@ -171,13 +171,13 @@ int maix_i2c_recv_data(i2c_device_number_t i2c_num, uint32_t slave_address, cons
     configASSERT(i2c_num < I2C_MAX_NUM);
 
     size_t fifo_len, index;
-    // size_t buf_len; 
+    // size_t buf_len;
     size_t rx_len;
     rx_len = receive_buf_len;
     // buf_len = rx_len;
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
     unsigned long time_start = time_ms();
-    
+
     if(is_master_mode[i2c_num] && slaves_addr[i2c_num] != slave_address)
     {
         i2c_adapter->enable = 0;
