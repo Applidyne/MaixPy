@@ -3,6 +3,16 @@
  *
  * \brief   Micropython wrapper for sensor IR flash control driver
  *
+ *          Example usage:
+ *
+ *              sensor_flash.reset()
+ *              print( sensor_flash.get_current() )
+ *              sensor_flash.set_current( 25 )
+ *              print( sensor_flash.get_current() )
+ *              print( sensor_flash.get_ambient() )
+ *              sensor_flash.enable( True )
+ *              sensor_flash.enable( False )
+ *
  * \author  Marco Hess <marcoh@applidyne.com.au>
  *
  * \date    28/10/2021
