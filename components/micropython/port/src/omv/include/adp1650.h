@@ -28,13 +28,18 @@
 #ifndef __ADP1650_H__
 #define __ADP1650_H__
 
-/* ~~~~~ Defines ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ----- Includes ----------------------------------------------------------- */
+
+#include <stdint.h>
+#include <stdbool.h>
+
+/* ----- Defines------------------------------------------------------------- */
 
 /**
  * ADP1650 Registers & Settings
  */
 
-#define ADP1650_CONFIG_I2C_ADDRESS                          0x30        /* 0x60 write 0x61 read */
+#define ADP1650_CONFIG_I2C_ADDRESS                  0x30    /* 0x60 write 0x61 read */
 
 #define ADP1650_REG_VERSION		                    0x00
 #define         ADP1650_CHIP_ID                             b00100010   /* 0x22 */
@@ -117,7 +122,7 @@
 #define         ADP1650_V_VB_LO_3V55			            (6 << 0)
 #define         ADP1650_V_VB_LO_3V60			            (7 << 0) /* VDD level 3.6V */
 
-/* ~~~~~ Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ----- Types -------------------------------------------------------------- */
 
 /*
  * Flash Modes to use with led_mode_set function
@@ -155,48 +160,48 @@ typedef enum
     ADC_CHANNEL_EXT_VOLTAGE,
 } AP1650_ADC_Channel_t;
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* -------------------------------------------------------------------------- */
 
 /** Return TRUE when an ADP1650 is detected on the indicated bus */
 
 bool
-adp1650_detect( i2c_client * i2c );
+adp1650_detect( uint8_t i2c );
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* -------------------------------------------------------------------------- */
 
 /** Init the ADP1650 to default settings */
 
 int
-adp1650_init( i2c_client * i2c );
+adp1650_init( uint8_t i2c );
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* -------------------------------------------------------------------------- */
 
 /** Configure the indicated mode */
 
 int
-adp1650_set_mode( i2c_client * i2c, AP1650_Mode_t mode );
+adp1650_set_mode( uint8_t i2c, AP1650_Mode_t mode );
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* -------------------------------------------------------------------------- */
 
 /** Set LED brightness  */
 
 int
-adp1650_set_brightness( i2c_client * i2c, AP1650_Mode_t mode );
+adp1650_set_brightness( uint8_t i2c, AP1650_Mode_t mode );
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* -------------------------------------------------------------------------- */
 
 /** Return the ADC reading of the indicated channel */
 
 int
-adp1650_get_adc( i2c_client * i2c, AP1650_ADC_Channel_t adc_mode );
+adp1650_get_adc( uint8_t i2c, AP1650_ADC_Channel_t adc_channel );
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* -------------------------------------------------------------------------- */
 
 /** Return the current fault status mask */
 
 int
-adp1650_get_fault_status( i2c_client * i2c );
+adp1650_get_fault_status( uint8_t i2c );
 
-/* ~~~~~ End ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ----- End ---------------------------------------------------------------- */
 
 #endif // __ADP1650_H__

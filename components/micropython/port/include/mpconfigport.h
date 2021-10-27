@@ -291,6 +291,7 @@ extern const struct _mp_obj_module_t network_module;
 extern const struct _mp_obj_module_t socket_module;
 extern const struct _mp_obj_module_t image_module;
 extern const struct _mp_obj_module_t sensor_module;
+extern const struct _mp_obj_module_t sensor_flash_module;
 extern const struct _mp_obj_module_t lcd_module;
 extern const struct _mp_obj_module_t kpu_module;
 extern const struct _mp_obj_module_t audio_module;
@@ -313,7 +314,7 @@ extern const struct _mp_obj_module_t video_module;
 #define MAIXPY_PY_VIDEO_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_video), (mp_obj_t)&video_module },
 #else
-#define MAIXPY_PY_VIDEO_DEF 
+#define MAIXPY_PY_VIDEO_DEF
 #endif
 
 // nes game emulator
@@ -324,7 +325,7 @@ extern const struct _mp_obj_module_t nes_module;
 #define MAIXPY_PY_NES_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_nes), (mp_obj_t)&nes_module },
 #else
-#define MAIXPY_PY_NES_DEF 
+#define MAIXPY_PY_NES_DEF
 #endif
 
 // speech_recognizer
@@ -335,7 +336,7 @@ extern const struct _mp_obj_module_t mp_module_speech_recognizer;
 #define MAIXPY_PY_SPEECH_RECOGNIZER_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_speech_recognizer), (mp_obj_t)&mp_module_speech_recognizer },
 #else
-#define MAIXPY_PY_SPEECH_RECOGNIZER_DEF 
+#define MAIXPY_PY_SPEECH_RECOGNIZER_DEF
 #endif
 // lvgl GUI lib
 
@@ -371,7 +372,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 #define MAIXPY_PY_TOUCHSCREEN_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_touchscreen), (mp_obj_t)&mp_module_touchscreen },
 #else
-#define MAIXPY_PY_TOUCHSCREEN_DEF 
+#define MAIXPY_PY_TOUCHSCREEN_DEF
 #endif
 
 #define  MAIXPY_PY_MODULES                   (1)
@@ -381,6 +382,9 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 #if CONFIG_MICROPYTHON_ULAB_ENALBE
     #define MODULE_ULAB_ENABLED (1)
 #endif
+
+#define MODULE_FLASH_ENABLED (1)
+
 /////////////////////////////////////////////////////////////////////////////////
 
 #define MICROPY_PORT_BUILTIN_MODULES \
@@ -394,6 +398,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
     { MP_OBJ_NEW_QSTR(MP_QSTR_socket), (mp_obj_t)&socket_module }, \
     { MP_OBJ_NEW_QSTR(MP_QSTR_image), (mp_obj_t)&image_module }, \
     { MP_OBJ_NEW_QSTR(MP_QSTR_sensor), (mp_obj_t)&sensor_module }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_sensor_flash), (mp_obj_t)&sensor_flash_module }, \
     { MP_OBJ_NEW_QSTR(MP_QSTR_lcd), (mp_obj_t)&lcd_module }, \
     { MP_OBJ_NEW_QSTR(MP_QSTR_KPU), (mp_obj_t)&kpu_module }, \
     { MP_OBJ_NEW_QSTR(MP_QSTR_audio), (mp_obj_t)&audio_module }, \
@@ -446,7 +451,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 
 //TODO:
 #if MICROPY_PY_USOCKET_EVENTS
-#define MICROPY_PY_USOCKET_EVENTS_HANDLER 
+#define MICROPY_PY_USOCKET_EVENTS_HANDLER
 #else
 #define MICROPY_PY_USOCKET_EVENTS_HANDLER
 #endif
