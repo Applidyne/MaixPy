@@ -115,14 +115,14 @@ adp1650_set_brightness( i2c_device_number_t i2c, AP1650_Mode_t mode )
 /** Return the ADC reading of the indicated channel */
 
 int
-adp1650_get_adc( i2c_device_number_t i2c,
+adp1650_get_adc( i2c_device_number_t  i2c,
                  AP1650_ADC_Channel_t adc_channel )
 {
     /* Select ADC channel */
     int ret = __adp1650_write( i2c, ADP1650_REG_ADC, adc_channel );
 
-    if( ret >= 0 )
-    {
+    // if( ret >= 0 )
+    // {
         /* Read ADC register again for result */
         uint8_t adc_val = 0;
         ret = __adp1650_read( i2c, ADP1650_REG_ADC, &adc_val );
@@ -131,7 +131,7 @@ adp1650_get_adc( i2c_device_number_t i2c,
         {
             return ADP1650_ADC_VAL( adc_val );
         }
-    }
+//    }
 
     return ret;
 }

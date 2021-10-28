@@ -93,26 +93,35 @@ int sensor_flash_reset( void )
         return -1;
     }
 
+    /* Init ENABLE pin */
+    fpioa_set_function( sensor_flash.config.gpio_enable,
+                        FUNC_GPIOHS0 + sensor_flash.config.gpio_enable);
+    gpiohs_set_drive_mode( sensor_flash.config.gpio_enable,
+                           GPIO_DM_OUTPUT );
+    /* ENABLE low to RESET */
+    gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_LOW );
+
     /* Init I2C pins */
     fpioa_set_function( sensor_flash.config.sclk,
                         FUNC_I2C0_SCLK + ( sensor_flash.config.i2c * 2 ) );
     fpioa_set_function( sensor_flash.config.sda,
                         FUNC_I2C0_SDA  + ( sensor_flash.config.i2c * 2 ) );
 
+    /* Init I2C device */
+    maix_i2c_init( sensor_flash.config.i2c,
+                   7, /* Address width */
+                   sensor_flash.config.i2c_freq );
+
+    /* ENABLE high to allow I2C access */
+    gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_HIGH );
+
+    /* Init TORCH enable pin */
     fpioa_set_function( sensor_flash.config.gpio_torch,
                         FUNC_GPIOHS0 + sensor_flash.config.gpio_torch);
     gpiohs_set_drive_mode( sensor_flash.config.gpio_torch,
                            GPIO_DM_OUTPUT );
-    gpiohs_set_pin( sensor_flash.config.gpio_torch,
-                    GPIO_PV_LOW );
-
-    /* Init ENABLE pin */
-    fpioa_set_function( sensor_flash.config.gpio_enable,
-                        FUNC_GPIOHS0 + sensor_flash.config.gpio_enable);
-    gpiohs_set_drive_mode( sensor_flash.config.gpio_enable,
-                           GPIO_DM_OUTPUT );
-    gpiohs_set_pin( sensor_flash.config.gpio_enable,
-                    GPIO_PV_LOW );
+    /* Default TORCH off */
+    sensor_flash_torch( false );
 
     /* Init AMBIENT sensor power pin */
     fpioa_set_function( sensor_flash.config.gpio_enable,
@@ -132,27 +141,25 @@ int sensor_flash_reset( void )
                sensor_flash.config.gpio_enable,
                sensor_flash.config.gpio_ambient_power );
 
-    /* Init I2C device */
-    maix_i2c_init( sensor_flash.config.i2c,
-                   7, /* Address width */
-                   sensor_flash.config.i2c_freq );
-
     /* Check chip is there */
     if( !adp1650_detect( sensor_flash.config.i2c ) )
     {
+        mp_printf( &mp_plat_print,
+                   "[sensor_flash]: adp1650 not detected!\n" );
         return -1;
     }
 
-    /* Default disable */
-
-    /* Set defaults */
+    /* Configure defaults */
     sensor_flash.current = 10;
-    sensor_flash_torch( false );
-    sensor_flash_enable( false );
+
+    /* TODO */
+
     return 0;
 }
 
 /* -------------------------------------------------------------------------- */
+
+/** Enable/disable the chip. Needs to be enabled to talk I2C with it. */
 
 int sensor_flash_enable( int enable )
 {
@@ -223,7 +230,6 @@ int sensor_flash_get_current( void )
 
 int sensor_flash_get_ambient( void )
 {
-
     /* TODO: Check if it OK to power ON/OFF the sensor around this call */
     int ambient = adp1650_get_adc( sensor_flash.config.i2c,
                                    ADC_CHANNEL_EXT_VOLTAGE );

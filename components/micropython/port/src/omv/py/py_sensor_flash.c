@@ -75,13 +75,14 @@ static mp_obj_t py_sensor_flash_get_fault( void )
 
 /* -------------------------------------------------------------------------- */
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_KW(py_sensor_flash_reset_obj, 0,   py_sensor_flash_reset);
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_enable_obj,      py_sensor_flash_enable);
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_torch_obj,       py_sensor_flash_torch);
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_set_current_obj, py_sensor_flash_set_current);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_current_obj, py_sensor_flash_get_current);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_ambient_obj, py_sensor_flash_get_ambient);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_fault_obj,   py_sensor_flash_get_fault);
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(py_sensor_flash_reset_obj, 0,       py_sensor_flash_reset);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_enable_obj,          py_sensor_flash_enable);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_torch_obj,           py_sensor_flash_torch);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_set_current_obj,     py_sensor_flash_set_current);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_current_obj,     py_sensor_flash_get_current);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_ambient_obj,     py_sensor_flash_get_ambient);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_temperature_obj, py_sensor_flash_get_ambient);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_fault_obj,       py_sensor_flash_get_fault);
 
 STATIC const mp_map_elem_t sensor_flash_module_globals_table[] =
 {
@@ -89,13 +90,14 @@ STATIC const mp_map_elem_t sensor_flash_module_globals_table[] =
     {MP_OBJ_NEW_QSTR(MP_QSTR___name__),    MP_OBJ_NEW_QSTR(MP_QSTR_sensor_flash)},
 
     // Flash functions
-    {MP_OBJ_NEW_QSTR(MP_QSTR_reset),       (mp_obj_t)&py_sensor_flash_reset_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_enable),      (mp_obj_t)&py_sensor_flash_enable_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_torch),       (mp_obj_t)&py_sensor_flash_torch_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_set_current), (mp_obj_t)&py_sensor_flash_set_current_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_get_current), (mp_obj_t)&py_sensor_flash_get_current_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_get_ambient), (mp_obj_t)&py_sensor_flash_get_ambient_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_get_fault),   (mp_obj_t)&py_sensor_flash_get_fault_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_reset),           (mp_obj_t)&py_sensor_flash_reset_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_enable),          (mp_obj_t)&py_sensor_flash_enable_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_torch),           (mp_obj_t)&py_sensor_flash_torch_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_set_current),     (mp_obj_t)&py_sensor_flash_set_current_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_get_current),     (mp_obj_t)&py_sensor_flash_get_current_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_get_ambient),     (mp_obj_t)&py_sensor_flash_get_ambient_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_get_temperature), (mp_obj_t)&py_sensor_flash_get_temperature_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_get_fault),       (mp_obj_t)&py_sensor_flash_get_fault_obj},
 };
 
 /* -------------------------------------------------------------------------- */
