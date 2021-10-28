@@ -5,37 +5,12 @@
  *
  *          Adopted from a similar file copyrighted 2011 by Analog Devices Inc.
  *
- *          adp1650 driver is free software: you can redistribute it and/or
- *          modify it under the terms of the GNU Lesser General Public
- *          License as published by the Free Software Foundation, either
- *          version 3 of the License, or (at your option) any later version.
- *
- *          adp1650 driver is distributed in the hope that it will be useful,
- *          but WITHOUT ANY WARRANTY; without even the implied warranty of
- *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *          GNU Lesser General Public License for more details.
- *
- *          You should have received a copy of the GNU Lesser General Public
- *          License along with adp1650 driver files.
- *
- *          If not, see <http://www.gnu.org/licenses/>.
- *
  * \author  Marco Hess <marcoh@applidyne.com.au>
  *
- * \date    24/09/2021
+ * \date    28/10/2021
  */
 
-// #include <linux/module.h>
-// #include <linux/init.h>
-// #include <linux/slab.h>
-// #include <linux/pm.h>
-// #include <linux/input.h>
-// #include <linux/delay.h>
-// #include <linux/i2c.h>
-// #include <linux/gpio.h>
-// #include <linux/leds.h>
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* -------------------------------------------------------------------------- */
 
 #include "adp1650.h"
 
@@ -154,7 +129,7 @@ adp1650_get_adc( i2c_device_number_t i2c,
 
         if( ret >= 0 )
         {
-            return (adc_val >> 2) & 0x0F;
+            return ADP1650_ADC_VAL( adc_val );
         }
     }
 
