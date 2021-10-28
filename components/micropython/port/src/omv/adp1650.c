@@ -89,32 +89,32 @@ int
 adp1650_init( i2c_device_number_t i2c )
 {
 	/* I/O configuration:
-	 * GPIO1 is flash control
+	 * GPIO1 is torch control control
 	 * GPIO2 is ambient light ADC input
-	 * Flash timer configuration 100 ms max
+	 * Flash timer configuration 1000 ms max
 	 */
     int ret = __adp1650_write( i2c,
 	                           ADP1650_REG_TIMER_IOCFG,
 							   ADP1650_IOCFG_IO1_TORCH
 							   | ADP1650_IOCFG_IO2_AIN
-							   | ADP1650_FL_TIMER_ms( 100 ) );
+							   | ADP1650_FL_TIMER_ms( 1000 ) );
 	if( ret < 0 )
 	{
 		return ret;
 	}
 
-	/* Flash default current 100mA, torch current 50mA */
+	/* Flash default current 500mA, torch current 50mA */
     ret = __adp1650_write( i2c,
 	                       ADP1650_REG_CURRENT_SET,
-	   			           ADP1650_I_FL_mA( 250 )
-						   | ADP1650_I_TOR_mA( 50 ) );
+	   			           ADP1650_I_FL_mA( 900 )
+						   | ADP1650_I_TOR_mA( 100 ) );
 	if( ret < 0 )
 	{
 		return ret;
 	}
 
 	/* Output mode:
-	 * - inductor peak 1.75A
+	 * - inductor peak 3.0A
 	 * - Strobe level sensitive
 	 * - No frequency fold back
 	 * - Output ENABLED
@@ -123,8 +123,8 @@ adp1650_init( i2c_device_number_t i2c )
 	 */
     ret = __adp1650_write( i2c,
 						   ADP1650_REG_OUTPUT_MODE,
-					       ADP1650_IL_PEAK_1A75
-						   | ADP1650_STR_LV_LEVEL
+					       ADP1650_IL_PEAK_2A25
+						   | ADP1650_STR_LV_EDGE
 						   | ADP1650_OUTPUT_EN
 						   | ADP1650_STR_MODE_HW
 						   | ADP1650_LED_MODE_FLASH );
@@ -136,8 +136,8 @@ adp1650_init( i2c_device_number_t i2c )
 	/* TxMASK1 & Tx_MASK2 => not actually used */
     ret = __adp1650_write( i2c,
 	                       ADP1650_REG_CONTROL,
-	 				       ADP1650_I_TX1_mA( 100 )
-					       | ADP1650_I_TX2_mA( 100 ) );
+	 				       ADP1650_I_TX1_mA( 400 )
+					       | ADP1650_I_TX2_mA( 400 ) );
 	if( ret < 0 )
 	{
 		return ret;
@@ -151,8 +151,23 @@ adp1650_init( i2c_device_number_t i2c )
     ret = __adp1650_write( i2c,
 	                       ADP1650_REG_AD_MODE,
 	  				       ADP1650_STR_POL_ACTIVE_HIGH
+						   | ADP1650_I_ILED_2mA75
 						   | ADP1650_IL_DC_1A50
 						   | ADP1650_IL_DC_EN );
+	if( ret < 0 )
+	{
+		return ret;
+	}
+
+	/* Battery low mode:
+	 * Foll back LED current when VIN falls below 3.3V
+	 * (which should not happen in our Felixer camera)
+	 */
+    ret = __adp1650_write( i2c,
+	                       ADP1650_REG_BATT_LOW,
+	  				       ADP1650_CL_SOFT_EN
+						   | ADP1650_I_VB_LO_mA( 400 )
+						   | ADP1650_V_VB_LO_3V30 );
 	if( ret < 0 )
 	{
 		return ret;
@@ -178,12 +193,13 @@ adp1650_set_mode( i2c_device_number_t i2c, AP1650_Mode_t mode )
 int
 adp1650_set_current( i2c_device_number_t i2c, uint16_t current_mA )
 {
+	/* The LED we are using is limited to about 1A */
 	if( current_mA <= 1000 )
 	{
     	return __adp1650_write( i2c,
 	                            ADP1650_REG_CURRENT_SET,
 	   		      	            ADP1650_I_FL_mA( current_mA )
-				    		    | ADP1650_I_TOR_mA( 50 ) );
+				    		    | ADP1650_I_TOR_mA( 100 ) );
 	}
 
     return -1;
