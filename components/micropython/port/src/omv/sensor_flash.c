@@ -15,10 +15,10 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "sensor_flash.h"
+
 /* There are likely too many includes here */
 #include "mp.h"
-#include "cambus.h"
-#include "sensor_flash.h"
 #include "omv_boardconfig.h"
 #include "mphalport.h"
 #include "plic.h"
@@ -33,11 +33,13 @@
 
 static const sensor_flash_config_t sensor_flash_config_defaults =
 {
-    .sensor_flash_i2c_num     = -1,
-    .sensor_flash_i2c_clk     = 31,
-    .sensor_flash_i2c_sda     = 30,
-    .sensor_flash_gpio_torch  = 10,
-    .sensor_flash_gpio_enable = 11,
+    .i2c                 = I2C_DEVICE_0,
+    .i2c_freq            = 125000UL,
+    .sclk                = 31,
+    .sda                 = 30,
+    .gpio_torch          = 10,
+    .gpio_enable         = 11,
+    .gpio_ambient_power = 12,
 };
 
 sensor_flash_t sensor_flash = {0};
@@ -66,11 +68,12 @@ void sensor_flash_load_config( sensor_flash_config_t * sensor_flash_cfg )
     {
         mp_obj_dict_t *self = MP_OBJ_TO_PTR(tmp);
 
-        SENSOR_FLASH_CHECK_CONFIG( sensor_flash_i2c_num,     &sensor_flash_cfg->sensor_flash_i2c_num );
-        SENSOR_FLASH_CHECK_CONFIG( sensor_flash_i2c_clk,     &sensor_flash_cfg->sensor_flash_i2c_clk );
-        SENSOR_FLASH_CHECK_CONFIG( sensor_flash_i2c_sda,     &sensor_flash_cfg->sensor_flash_i2c_sda );
-        SENSOR_FLASH_CHECK_CONFIG( sensor_flash_gpio_torch,  &sensor_flash_cfg->sensor_flash_gpio_torch );
-        SENSOR_FLASH_CHECK_CONFIG( sensor_flash_gpio_enable, &sensor_flash_cfg->sensor_flash_gpio_enable );   }
+        SENSOR_FLASH_CHECK_CONFIG( i2c,         &sensor_flash_cfg->i2c );
+        SENSOR_FLASH_CHECK_CONFIG( i2c_freq,    &sensor_flash_cfg->i2c_freq );
+        SENSOR_FLASH_CHECK_CONFIG( sclk,        &sensor_flash_cfg->sclk );
+        SENSOR_FLASH_CHECK_CONFIG( sda,         &sensor_flash_cfg->sda );
+        SENSOR_FLASH_CHECK_CONFIG( gpio_torch,  &sensor_flash_cfg->gpio_torch );
+        SENSOR_FLASH_CHECK_CONFIG( gpio_enable, &sensor_flash_cfg->gpio_enable );   }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -80,12 +83,59 @@ int sensor_flash_reset( void )
     mp_printf(&mp_plat_print, "[sensor_flash]: reset\n");
 
     /* Load config */
-    sensor_flash_config_t config = sensor_flash_config_defaults;
-    sensor_flash_load_config( &config );
+    sensor_flash.config = sensor_flash_config_defaults;
+    sensor_flash_load_config( &sensor_flash.config );
 
-    /* Enable IO pins */
+    if( ( sensor_flash.config.i2c > 2 )
+        ||
+        ( sensor_flash.config.i2c < 0 ) )
+    {
+        return -1;
+    }
 
-    /* Enable I2C */
+    /* Init I2C pins */
+    fpioa_set_function( sensor_flash.config.sclk,
+                        FUNC_I2C0_SCLK + ( sensor_flash.config.i2c * 2 ) );
+    fpioa_set_function( sensor_flash.config.sda,
+                        FUNC_I2C0_SDA  + ( sensor_flash.config.i2c * 2 ) );
+
+    fpioa_set_function( sensor_flash.config.gpio_torch,
+                        FUNC_GPIOHS0 + sensor_flash.config.gpio_torch);
+    gpiohs_set_drive_mode( sensor_flash.config.gpio_torch,
+                           GPIO_DM_OUTPUT );
+    gpiohs_set_pin( sensor_flash.config.gpio_torch,
+                    GPIO_PV_LOW );
+
+    /* Init ENABLE pin */
+    fpioa_set_function( sensor_flash.config.gpio_enable,
+                        FUNC_GPIOHS0 + sensor_flash.config.gpio_enable);
+    gpiohs_set_drive_mode( sensor_flash.config.gpio_enable,
+                           GPIO_DM_OUTPUT );
+    gpiohs_set_pin( sensor_flash.config.gpio_enable,
+                    GPIO_PV_LOW );
+
+    /* Init AMBIENT sensor power pin */
+    fpioa_set_function( sensor_flash.config.gpio_enable,
+                        FUNC_GPIOHS0 + sensor_flash.config.gpio_enable);
+    gpiohs_set_drive_mode( sensor_flash.config.gpio_enable,
+                           GPIO_DM_OUTPUT );
+    gpiohs_set_pin( sensor_flash.config.gpio_enable,
+                    GPIO_PV_HIGH ); /* Default powered ON */
+
+    mp_printf( &mp_plat_print,
+               "[sensor_flash]: sensor_flash config i2c %d freq %lu sclk %d sda %d torch %d enable %d ambient %d\n",
+               sensor_flash.config.i2c,
+               sensor_flash.config.i2c_freq,
+               sensor_flash.config.sclk,
+               sensor_flash.config.sda,
+               sensor_flash.config.gpio_torch,
+               sensor_flash.config.gpio_enable,
+               sensor_flash.config.gpio_ambient_power );
+
+    /* Init I2C device */
+    maix_i2c_init( sensor_flash.config.i2c,
+                   7, /* Address width */
+                   sensor_flash.config.i2c_freq );
 
     /* Check chip is there */
 
@@ -100,16 +150,19 @@ int sensor_flash_reset( void )
 
 int sensor_flash_enable( int enable )
 {
+    sensor_flash.enable = (enable > 0);
+
     mp_printf( &mp_plat_print,
                "[sensor_flash]: enable %s\n",
-               enable ? "ON" : "OFF");
-    if( enable )
+               sensor_flash.enable ? "ON" : "OFF");
+
+    if( sensor_flash.enable )
     {
-        /* Toggle IO */
+        gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_HIGH );
     }
     else
     {
-        /* Toggle IO */
+        gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_LOW );
     }
 
     return 0;

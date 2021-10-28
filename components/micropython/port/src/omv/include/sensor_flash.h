@@ -15,19 +15,24 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "sipeed_i2c.h"
+
+/* -------------------------------------------------------------------------- */
+
 typedef struct
 {
-    uint8_t sensor_flash_i2c_num;
-    uint8_t sensor_flash_i2c_clk;
-    uint8_t sensor_flash_i2c_sda;
-    uint8_t sensor_flash_gpio_torch;
-    uint8_t sensor_flash_gpio_enable;
+    i2c_device_number_t i2c;                 /* I2C device number */
+    uint32_t            i2c_freq;            /* I2C device frequency */
+    uint8_t             sclk;                /* I2C clock pin */
+    uint8_t             sda;                 /* I2C data pin */
+    uint8_t             gpio_torch;          /* GPIO to active TORCH mode */
+    uint8_t             gpio_enable;         /* GPIO to activate ENABLE line */
+    uint8_t             gpio_ambient_power;  /* GPIO to power ambient sensor */
 }  sensor_flash_config_t;
 
 typedef struct
 {
     sensor_flash_config_t   config;
-    uint8_t                 i2c_num;
     bool                    enable;
     uint16_t                current;
 } sensor_flash_t;
