@@ -68,6 +68,13 @@ static mp_obj_t py_sensor_flash_get_ambient( void )
 
 /* -------------------------------------------------------------------------- */
 
+static mp_obj_t py_sensor_flash_get_temperature( void )
+{
+    return mp_obj_new_int( sensor_flash_get_temperature() );
+}
+
+/* -------------------------------------------------------------------------- */
+
 static mp_obj_t py_sensor_flash_get_fault( void )
 {
     return mp_obj_new_int( sensor_flash_get_fault() );
@@ -81,7 +88,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_torch_obj,           py_sensor_
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(py_sensor_flash_set_current_obj,     py_sensor_flash_set_current);
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_current_obj,     py_sensor_flash_get_current);
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_ambient_obj,     py_sensor_flash_get_ambient);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_temperature_obj, py_sensor_flash_get_ambient);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_temperature_obj, py_sensor_flash_get_temperature);
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(py_sensor_flash_get_fault_obj,       py_sensor_flash_get_fault);
 
 STATIC const mp_map_elem_t sensor_flash_module_globals_table[] =

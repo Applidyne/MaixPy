@@ -35,7 +35,7 @@ typedef struct
     sensor_flash_config_t config;               /* Config paramters. */
     bool                  enable;               /* Enable strobe from sensor */
     bool                  torch;                /* Torch mode ON/OFF */
-    uint16_t              current;              /* LED current setting */
+    uint16_t              current_mA;           /* LED current setting */
 } sensor_flash_t;
 
 /* -------------------------------------------------------------------------- */
@@ -69,6 +69,10 @@ int sensor_flash_get_current( void );
 /* -------------------------------------------------------------------------- */
 
 int sensor_flash_get_ambient( void );
+
+/* -------------------------------------------------------------------------- */
+
+int sensor_flash_get_temperature( void );
 
 /* -------------------------------------------------------------------------- */
 

@@ -150,10 +150,11 @@ int sensor_flash_reset( void )
     }
 
     /* Configure defaults */
-    sensor_flash.current = 10;
+    adp1650_init( sensor_flash.config.i2c );
 
-    /* TODO */
-
+    sensor_flash.current_mA = 500;
+    adp1650_set_current( sensor_flash.config.i2c,
+                         sensor_flash.current_mA );
     return 0;
 }
 
@@ -207,13 +208,14 @@ int sensor_flash_torch( int enable )
 
 /* -------------------------------------------------------------------------- */
 
-int sensor_flash_set_current( int current )
+int sensor_flash_set_current( int current_mA )
 {
     /* Write current to chip */
     mp_printf( &mp_plat_print,
-               "[sensor_flash]: set current %d\n", current );
-    sensor_flash.current = current;
-    return 0;
+               "[sensor_flash]: set current %d\n", current_mA );
+    sensor_flash.current_mA = current_mA;
+    return adp1650_set_current( sensor_flash.config.i2c,
+                                sensor_flash.current_mA );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -222,8 +224,8 @@ int sensor_flash_get_current( void )
 {
     /* Read set current from chip */
     mp_printf( &mp_plat_print,
-               "[sensor_flash]: get current %d\n", sensor_flash.current );
-    return sensor_flash.current;
+               "[sensor_flash]: get current %d\n", sensor_flash.current_mA );
+    return sensor_flash.current_mA;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -188,7 +188,7 @@ adp1650_set_mode( i2c_device_number_t i2c, AP1650_Mode_t mode );
 /** Set LED brightness  */
 
 int
-adp1650_set_brightness( i2c_device_number_t i2c, AP1650_Mode_t mode );
+adp1650_set_current( i2c_device_number_t i2c, uint16_t current_mA );
 
 /* -------------------------------------------------------------------------- */
 
