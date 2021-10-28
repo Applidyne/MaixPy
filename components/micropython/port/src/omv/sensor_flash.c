@@ -33,7 +33,7 @@
 
 static const sensor_flash_config_t sensor_flash_config_defaults =
 {
-    .i2c                 = I2C_DEVICE_0,
+    .i2c                 = I2C_DEVICE_1,
     .i2c_freq            = 125000UL,
     .sclk                = 31,
     .sda                 = 30,
@@ -138,6 +138,10 @@ int sensor_flash_reset( void )
                    sensor_flash.config.i2c_freq );
 
     /* Check chip is there */
+    if( !adp1650_detect( sensor_flash.config.i2c ) )
+    {
+        return -1;
+    }
 
     /* Default disable */
 
@@ -182,11 +186,11 @@ int sensor_flash_torch( int enable )
 
     if( sensor_flash.torch )
     {
-        gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_HIGH );
+        gpiohs_set_pin( sensor_flash.config.gpio_torch, GPIO_PV_HIGH );
     }
     else
     {
-        gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_LOW );
+        gpiohs_set_pin( sensor_flash.config.gpio_torch, GPIO_PV_LOW );
     }
 
     return 0;
@@ -215,10 +219,14 @@ int sensor_flash_get_current( void )
 
 /* -------------------------------------------------------------------------- */
 
+/* Read ambient sensor ADC via chip ADC external input */
+
 int sensor_flash_get_ambient( void )
 {
-    /* Read ambient ADC from chip */
-    int ambient = sensor_flash.current / 2; /* TEST */
+
+    /* TODO: Check if it OK to power ON/OFF the sensor around this call */
+    int ambient = adp1650_get_adc( sensor_flash.config.i2c,
+                                   ADC_CHANNEL_EXT_VOLTAGE );
 
     mp_printf( &mp_plat_print,
                "[sensor_flash]: get ambient %d\n", ambient );
@@ -227,4 +235,41 @@ int sensor_flash_get_ambient( void )
 }
 
 /* -------------------------------------------------------------------------- */
+
+/** Read chip die temperature */
+
+int sensor_flash_get_temperature( void )
+{
+    /* TODO: Check if it OK to power ON/OFF the sensor around this call */
+
+    int adc = adp1650_get_adc( sensor_flash.config.i2c,
+                               ADC_CHANNEL_TEMPERATURE );
+
+    /* We get a 0..15 reading that is mapped 25 to 150 degrees with
+     * 0 being 150 degrees and 15 being 25 degrees.
+     */
+    int temperature = ( ( 16 - adc ) * ( ( 150 - 25 ) / 15 ) ) + 25;
+
+    mp_printf( &mp_plat_print,
+               "[sensor_flash]: get temperature %d\n", temperature );
+
+    return temperature;
+}
+
+/* -------------------------------------------------------------------------- */
+
+/** Read chip fault status register. See ADP1650 reg 0x05 for details */
+
+int sensor_flash_get_fault( void )
+{
+    int status = adp1650_get_fault_status( sensor_flash.config.i2c );
+
+    mp_printf( &mp_plat_print,
+               "[sensor_flash]: fault status 0x%x\n", status );
+
+    return status;
+}
+
+/* -------------------------------------------------------------------------- */
+
 
