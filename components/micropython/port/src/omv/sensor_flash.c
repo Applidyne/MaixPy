@@ -33,10 +33,10 @@
 
 static const sensor_flash_config_t sensor_flash_config_defaults =
 {
-    .i2c                 = I2C_DEVICE_1,
+    .i2c                 = I2C_DEVICE_0,
     .i2c_freq            = 125000UL,
-    .sclk                = 31,
-    .sda                 = 30,
+    .sclk                = 30,
+    .sda                 = 31,
     .gpio_torch          = 10,
     .gpio_enable         = 11,
     .gpio_ambient_power  = 12,
