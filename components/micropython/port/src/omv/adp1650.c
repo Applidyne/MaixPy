@@ -15,6 +15,7 @@
 #include "adp1650.h"
 
 #include "mpprint.c"
+#include "mphalport.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -215,6 +216,9 @@ adp1650_get_adc( i2c_device_number_t  i2c,
 
     if( ret >= 0 )
     {
+		/* Allow 1ms for conversion */
+	    mp_hal_delay_ms( 1 );
+
         /* Read ADC register again for result */
         uint8_t adc_val = 0;
         ret = __adp1650_read( i2c, ADP1650_REG_ADC, &adc_val );
