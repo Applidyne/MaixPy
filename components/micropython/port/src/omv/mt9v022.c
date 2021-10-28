@@ -128,6 +128,11 @@ static const Register_t mt9v022_reg_defaults[] =
       .value   = MT9V022_ANALOG_GAIN_DEF,
       .wait_ms = 0 },
 
+    { .reg     = MT9V022_REG_LED_OUT_CONTROL,
+      .mask    = 0,
+      .value   = MT9V022_LED_OUT_DEF,
+      .wait_ms = 0 },
+
     // { .reg     = MT9V022_REG_TOTAL_SHUTTER_WIDTH,
     //   .mask    = 0,
     //   .value   = MT9V022_TOTAL_SHUTTER_WIDTH_DEF,
