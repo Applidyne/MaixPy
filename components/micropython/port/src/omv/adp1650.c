@@ -39,6 +39,8 @@
 
 #include "adp1650.h"
 
+#include "mpprint.c"
+
 /* -------------------------------------------------------------------------- */
 
 static int
@@ -49,11 +51,17 @@ __adp1650_write( i2c_device_number_t i2c,
     uint8_t tx_data[2];
     tx_data[0] = reg;
     tx_data[1] = data;
-    return maix_i2c_send_data( i2c,
-                               ADP1650_CONFIG_I2C_ADDRESS,
-                               tx_data,
-                               2,
-                               100 );
+
+    int ret = maix_i2c_send_data( i2c,
+                                  ADP1650_CONFIG_I2C_ADDRESS,
+                                  tx_data,
+                                  2,
+                                  100 );
+
+    mp_printf( &mp_plat_print,
+               "[adp1650]: write reg %d val 0x%X ret %d\n", reg, data, ret );
+
+	return ret;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -67,11 +75,14 @@ __adp1650_read( i2c_device_number_t i2c,
 
     int ret = maix_i2c_recv_data( i2c,
                                   ADP1650_CONFIG_I2C_ADDRESS,
-                                  tx_data,
+                                  &tx_data,
                                   1,
                                   rx_data,
                                   1,
                                   100 );
+
+    mp_printf( &mp_plat_print,
+               "[adp1650]: read reg %d val 0x%X ret %d\n", reg, *rx_data, ret );
 
     return ret;
 }
