@@ -39,7 +39,7 @@ static const sensor_flash_config_t sensor_flash_config_defaults =
     .sda                 = 30,
     .gpio_torch          = 10,
     .gpio_enable         = 11,
-    .gpio_ambient_power = 12,
+    .gpio_ambient_power  = 12,
 };
 
 sensor_flash_t sensor_flash = {0};
@@ -141,8 +141,10 @@ int sensor_flash_reset( void )
 
     /* Default disable */
 
-    /* Set default current */
+    /* Set defaults */
     sensor_flash.current = 10;
+    sensor_flash_torch( false );
+    sensor_flash_enable( false );
     return 0;
 }
 
@@ -157,6 +159,28 @@ int sensor_flash_enable( int enable )
                sensor_flash.enable ? "ON" : "OFF");
 
     if( sensor_flash.enable )
+    {
+        gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_HIGH );
+    }
+    else
+    {
+        gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_LOW );
+    }
+
+    return 0;
+}
+
+/* -------------------------------------------------------------------------- */
+
+int sensor_flash_torch( int enable )
+{
+    sensor_flash.torch = (enable > 0);
+
+    mp_printf( &mp_plat_print,
+               "[sensor_flash]: torch %s\n",
+               sensor_flash.torch ? "ON" : "OFF");
+
+    if( sensor_flash.torch )
     {
         gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_HIGH );
     }
