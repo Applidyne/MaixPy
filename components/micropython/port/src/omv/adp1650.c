@@ -57,7 +57,7 @@ __adp1650_read( i2c_device_number_t i2c,
                                   100 );
 
     mp_printf( &mp_plat_print,
-               "[adp1650]: read reg %d val 0x%X ret %d\n", reg, *rx_data, ret );
+               "[adp1650]: read  reg %d val 0x%X ret %d\n", reg, *rx_data, ret );
 
     return ret;
 }

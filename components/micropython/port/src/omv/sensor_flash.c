@@ -159,7 +159,9 @@ int sensor_flash_reset( void )
 
 /* -------------------------------------------------------------------------- */
 
-/** Enable/disable the chip. Needs to be enabled to talk I2C with it. */
+/**  Set EN low to bring the quiescent current (IQ) to <1 μA.
+ *   Registers are set to their defaults when EN is brought from low to high.
+ */
 
 int sensor_flash_enable( int enable )
 {
