@@ -366,6 +366,18 @@
 
 #define MT9V022_REG_8BIT_ACCESS_LOW_BYTE            0xf0
 
+/**
+ * This register disables the ability to write to various registers to avoid
+ * unintentional configuration changes from electrical noise on the I2C bus.
+ * -LOCK_NONE allows for write access to all registers
+ * -LOCK_ALL blocks all write access except to this register
+ * -LOCK_READ_MORE locks access to only the Read More configuration register.
+ */
+#define MT9V022_REG_LOCK                            0xfe
+#define         MT9V022_LOCK_NONE                   0xbeef
+#define         MT9V022_LOCK_ALL                    0xdead
+#define         MT9V022_LOCK_READ_MORE_ONLY         0xdeaf
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /** Return TRUE when an MT9V022 sensor is detected on the indicated bus */

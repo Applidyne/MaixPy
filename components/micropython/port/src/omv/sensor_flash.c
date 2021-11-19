@@ -78,9 +78,9 @@ void sensor_flash_load_config( sensor_flash_config_t * sensor_flash_cfg )
 
 /* -------------------------------------------------------------------------- */
 
-int sensor_flash_reset( void )
+int sensor_flash_init( void )
 {
-    mp_printf(&mp_plat_print, "[sensor_flash]: reset\n");
+    mp_printf(&mp_plat_print, "[sensor_flash]: init\n");
 
     /* Load config */
     sensor_flash.config = sensor_flash_config_defaults;
@@ -120,16 +120,12 @@ int sensor_flash_reset( void )
                         FUNC_GPIOHS0 + sensor_flash.config.gpio_torch);
     gpiohs_set_drive_mode( sensor_flash.config.gpio_torch,
                            GPIO_DM_OUTPUT );
-    /* Default TORCH off */
-    sensor_flash_torch( false );
 
     /* Init AMBIENT sensor power pin */
     fpioa_set_function( sensor_flash.config.gpio_enable,
                         FUNC_GPIOHS0 + sensor_flash.config.gpio_enable);
     gpiohs_set_drive_mode( sensor_flash.config.gpio_enable,
                            GPIO_DM_OUTPUT );
-    gpiohs_set_pin( sensor_flash.config.gpio_enable,
-                    GPIO_PV_HIGH ); /* Default powered ON */
 
     mp_printf( &mp_plat_print,
                "[sensor_flash]: sensor_flash config i2c %d freq %lu sclk %d sda %d torch %d enable %d ambient %d\n",
@@ -149,12 +145,8 @@ int sensor_flash_reset( void )
         return -1;
     }
 
-    /* Configure defaults */
-    adp1650_init( sensor_flash.config.i2c );
-
-    sensor_flash.current_mA = 500;
-    adp1650_set_current( sensor_flash.config.i2c,
-                         sensor_flash.current_mA );
+    /* ENABLE low to RESET */
+    gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_LOW );
     return 0;
 }
 
@@ -174,13 +166,58 @@ int sensor_flash_enable( int enable )
 
     if( sensor_flash.enable )
     {
+        /* Enable chip. */
         gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_HIGH );
+
+        /* terrible implementation of a delay. */
+        uint32_t ms = 1;
+        while (ms && ms--)
+        {
+            for (uint32_t i = 0; i < 25000; i++)
+                __asm__ __volatile__("nop");
+        }
+
+        /* Check chip is there */
+        if( !adp1650_detect( sensor_flash.config.i2c ) )
+        {
+            mp_printf( &mp_plat_print,
+                    "[sensor_flash]: adp1650 not detected!\n" );
+            return -1;
+        }
+
+        /* Default TORCH off */
+        sensor_flash_torch( false );
+
+        /* Configure defaults */
+        adp1650_init( sensor_flash.config.i2c );
+
+        sensor_flash.current_mA = 300;
+        adp1650_set_current( sensor_flash.config.i2c,
+                            sensor_flash.current_mA );
     }
     else
     {
+        /* Disable chip. */
         gpiohs_set_pin( sensor_flash.config.gpio_enable, GPIO_PV_LOW );
     }
 
+    return 0;
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**  Sets the output enabled register bit
+ */
+
+int sensor_flash_output( int enable )
+{
+    bool output_type = (enable > 0);
+    mp_printf( &mp_plat_print,
+               "[sensor_flash]: output %s\n",
+               output_type ? "ON" : "OFF" );
+
+    adp1650_set_output( sensor_flash.config.i2c,
+                        output_type );
     return 0;
 }
 
@@ -282,4 +319,14 @@ int sensor_flash_get_fault( void )
 
 /* -------------------------------------------------------------------------- */
 
+int sensor_flash_set_mode( int mode )
+{
+    int status = adp1650_set_mode( sensor_flash.config.i2c, mode );
 
+    mp_printf( &mp_plat_print,
+               "[sensor_flash]: mode set 0x%x ret 0x%x\n", mode, status );
+
+    return status;
+}
+
+/* -------------------------------------------------------------------------- */

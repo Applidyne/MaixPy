@@ -178,6 +178,13 @@ adp1650_init( i2c_device_number_t i2c );
 
 /* -------------------------------------------------------------------------- */
 
+/** Sets the output enable */
+
+int
+adp1650_set_output( i2c_device_number_t i2c, bool output );
+
+/* -------------------------------------------------------------------------- */
+
 /** Configure the indicated mode */
 
 int

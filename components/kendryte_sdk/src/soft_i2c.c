@@ -73,7 +73,7 @@ static inline void I2C_END( soft_i2c_context_t * ctx )
     SCL_HIGH( ctx );
     usleep( ctx->bit_delay/2 );
     SDA_HIGH( ctx );
-    usleep( ctx->bit_delay/2 );
+    usleep( ctx->bit_delay * 2 );
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -87,6 +87,7 @@ int soft_i2c_byte_out( uint8_t b )
 {
     for( int i = 0; i < 8; i++ )
     {
+        usleep( soft_i2c.bit_delay/2 );
         if( b & 0x80 )
         {
             SDA_HIGH( &soft_i2c );
@@ -111,7 +112,7 @@ int soft_i2c_byte_out( uint8_t b )
     usleep( soft_i2c.bit_delay/2 );
     SCL_LOW( &soft_i2c );
     usleep( soft_i2c.bit_delay/2 );
-    SDA_LOW( &soft_i2c );
+    //SDA_LOW( &soft_i2c );
 
     return (ack == 0) ? 1 : 0;
 }
@@ -133,6 +134,7 @@ uint8_t soft_i2c_byte_in( bool last )
     {
         usleep( soft_i2c.bit_delay );
         SCL_HIGH( &soft_i2c );
+        usleep( soft_i2c.bit_delay/4 );
         b <<= 1;
         if( SDA_READ( &soft_i2c ) )
         {
@@ -141,6 +143,7 @@ uint8_t soft_i2c_byte_in( bool last )
         usleep( soft_i2c.bit_delay );
         SCL_LOW( &soft_i2c );
     }
+    usleep( soft_i2c.bit_delay );
 
     if( !last )
     {
@@ -152,6 +155,7 @@ uint8_t soft_i2c_byte_in( bool last )
     usleep( soft_i2c.bit_delay );
     SDA_INPUT_MODE( &soft_i2c );
     SCL_LOW( &soft_i2c );
+    usleep( soft_i2c.bit_delay );
 
     return b;
 }
@@ -233,9 +237,21 @@ int soft_i2c_recv_data( uint32_t            slave_address,
 {
     int ret = -1;
 
+    I2C_BEGIN( &soft_i2c );
+
     if( send_buf_len > 0 )
     {
-        soft_i2c_send_data( slave_address, send_buf, send_buf_len, timeout_ms );
+        if( soft_i2c_byte_out( ( slave_address << 1 ) ) ) /* Write */
+        {
+            for( int i = 0; i < send_buf_len; i++ )
+            {
+                ret = soft_i2c_byte_out( send_buf[i] );
+                if( ret == 0 )   /* 1 == ACK */
+                {
+                    return -1;
+                }
+            }
+        }
     }
 
     I2C_BEGIN( &soft_i2c );

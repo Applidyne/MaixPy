@@ -65,6 +65,30 @@ __adp1650_read( i2c_device_number_t i2c,
 
 /* -------------------------------------------------------------------------- */
 
+/** Sets the torch current in mA (25-200mA in 25mA increments) */
+static int
+__adp1650_set_torch_current( i2c_device_number_t i2c, uint8_t current )
+{
+    uint8_t val;
+    int ret = __adp1650_read( i2c,
+                              ADP1650_REG_CURRENT_SET,
+                              &val );
+    if( ret != 0 )
+    {
+        return ret;
+    }
+    ret = __adp1650_write( i2c,
+                           ADP1650_REG_CURRENT_SET,
+                           ( val & ~0x07 ) | ADP1650_I_TOR_mA( current ) );
+    if( ret != 0 )
+    {
+        return ret;
+    }
+    return 0;
+}
+
+/* -------------------------------------------------------------------------- */
+
 /** Return TRUE when an ADP1650 is detected on the indicated bus */
 
 bool
@@ -106,8 +130,8 @@ adp1650_init( i2c_device_number_t i2c )
     /* Flash default current 500mA, torch current 50mA */
     ret = __adp1650_write( i2c,
                            ADP1650_REG_CURRENT_SET,
-                              ADP1650_I_FL_mA( 900 )
-                           | ADP1650_I_TOR_mA( 100 ) );
+                              ADP1650_I_FL_mA( 500 )
+                           | ADP1650_I_TOR_mA( 50 ) );
     if( ret < 0 )
     {
         return ret;
@@ -117,17 +141,16 @@ adp1650_init( i2c_device_number_t i2c )
      * - inductor peak 3.0A
      * - Strobe level sensitive
      * - No frequency fold back
-     * - Output ENABLED
+     * - Output DISABLED
      * - Hardware strobe mode
-     * - LED output mode FLASH
+     * - LED output mode STANDBY
      */
     ret = __adp1650_write( i2c,
                            ADP1650_REG_OUTPUT_MODE,
                            ADP1650_IL_PEAK_2A25
-                           | ADP1650_STR_LV_EDGE
-                           | ADP1650_OUTPUT_EN
+                           | ADP1650_STR_LV_LEVEL
                            | ADP1650_STR_MODE_HW
-                           | ADP1650_LED_MODE_FLASH );
+                           | ADP1650_LED_MODE_STBY );
     if( ret < 0 )
     {
         return ret;
@@ -178,11 +201,474 @@ adp1650_init( i2c_device_number_t i2c )
 
 /* -------------------------------------------------------------------------- */
 
+/** Sets the output enable */
+
+int
+adp1650_set_output( i2c_device_number_t i2c, bool output )
+{
+    uint8_t val;
+    int ret = __adp1650_read( i2c,
+                              ADP1650_REG_AD_MODE,
+                              &val );
+    if( ret != 0 )
+    {
+        return ret;
+    }
+    if( output )
+    {
+        ret = __adp1650_write( i2c,
+                               ADP1650_REG_AD_MODE,
+                               val | ADP1650_OUTPUT_EN );
+    }
+    else
+    {
+        ret = __adp1650_write( i2c,
+                               ADP1650_REG_AD_MODE,
+                               val & ~ADP1650_OUTPUT_EN );
+    }
+    if( ret != 0 )
+    {
+        return ret;
+    }
+    return 0;
+}
+
+/* -------------------------------------------------------------------------- */
+
 /** Configure the indicated mode */
 
 int
 adp1650_set_mode( i2c_device_number_t i2c, AP1650_Mode_t mode )
 {
+    int ret;
+    switch( mode )
+    {
+        case FL_MODE_OFF:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_STBY );
+        break;
+        case FL_MODE_TORCH_25mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 25 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_50mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 50 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_75mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 75 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_100mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 100 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_125mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 125 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_150mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 150 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_175mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 175 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_200mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 200 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_25mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 25 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_50mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 50 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_75mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 75 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_100mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 100 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_125mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 125 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_150mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 150 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_175mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 175 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_TORCH_TRIG_EXT_200mA:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 200 );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_ASSIST_LIGHT );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_FLASH:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_SW
+                                   | ADP1650_LED_MODE_FLASH );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        case FL_MODE_FLASH_TRIG_EXT:
+            ret = adp1650_set_output( i2c, false );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            ret = __adp1650_set_torch_current( i2c, 25 );
+            ret = __adp1650_write( i2c,
+                                   ADP1650_REG_OUTPUT_MODE,
+                                   ADP1650_IL_PEAK_2A25
+                                   | ADP1650_STR_LV_LEVEL
+                                   | ADP1650_STR_MODE_HW
+                                   | ADP1650_LED_MODE_FLASH );
+            if( ret != 0 )
+            {
+                return ret;
+            }
+            adp1650_set_output( i2c, true );
+        break;
+        default:
+            return -1;
+        break;
+    }
+    if( ret != 0 )
+    {
+        return ret;
+    }
     return 0;
 }
 
@@ -193,13 +679,21 @@ adp1650_set_mode( i2c_device_number_t i2c, AP1650_Mode_t mode )
 int
 adp1650_set_current( i2c_device_number_t i2c, uint16_t current_mA )
 {
-    /* The LED we are using is limited to about 1A */
-    if( current_mA <= 1000 )
+    /* The LED we are using is limited to about 1A. Minimum for the flash
+    current is 300mA. */
+    if( ( current_mA <= 1000 ) && ( current_mA >= 300 ) )
     {
         return __adp1650_write( i2c,
                                 ADP1650_REG_CURRENT_SET,
                                      ADP1650_I_FL_mA( current_mA )
                                 | ADP1650_I_TOR_mA( 100 ) );
+    }
+    else if( current_mA < 300 )
+    {
+        return __adp1650_write( i2c,
+                                ADP1650_REG_CURRENT_SET,
+                                ADP1650_I_FL_mA( 300 )
+                              | ADP1650_I_TOR_mA( 100 ) );
     }
 
     return -1;

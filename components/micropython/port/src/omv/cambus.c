@@ -43,6 +43,7 @@ int sccb_i2c_init(int8_t i2c, uint8_t pin_clk, uint8_t pin_sda, uint8_t gpio_clk
     }
     else if (i2c == -1)
     {
+        mp_printf(&mp_plat_print, "sccb_i2c_init: SW_I2C %ld\n", freq );
         soft_i2c_init( pin_clk, pin_sda, 7, freq );
     }
     else

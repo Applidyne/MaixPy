@@ -69,6 +69,11 @@ static const Register_t mt9v022_reg_defaults[] =
       .value   = MT9V022_RESET_RELEASE,
       .wait_ms = 10 },
 
+    { .reg     = MT9V022_REG_LOCK,
+      .mask    = 0,
+      .value   = MT9V022_LOCK_NONE,
+      .wait_ms = 0 },
+
      { .reg     = MT9V022_REG_CHIP_CONTROL,
        .mask    = MT9V022_CHIP_CONTROL_SCAN_MODE_MASK
                 | MT9V022_CHIP_CONTROL_MASTER_MODE
@@ -421,6 +426,7 @@ __mt9v022_read( const uint8_t reg )
 static int
 __mt9v022_write( const int8_t reg, const uint16_t val )
 {
+    uint16_t pre_rval = __mt9v022_read( reg );
     int ret = cambus_writeb( mt9v022_i2c_slave_address, reg, val >> 8 );
     ret = cambus_writeb( mt9v022_i2c_slave_address, MT9V022_REG_8BIT_ACCESS_LOW_BYTE, val & 0xFF );
     // int ret = cambus_writew( mt9v022_i2c_slave_address, reg, val );
@@ -430,11 +436,16 @@ __mt9v022_write( const int8_t reg, const uint16_t val )
      */
     mp_hal_delay_ms( 10 );
     uint16_t rval = __mt9v022_read( reg );
+    mp_printf( &mp_plat_print,
+               "[__mt9v022_write]: MT9V022 addr 0x%x write reg 0x%x: read 0x%x write 0x%x read 0x%x",
+               mt9v022_i2c_slave_address, (reg & 0xff), pre_rval, val, rval );
     if( rval != val )
     {
-        mp_printf( &mp_plat_print,
-                   "[__mt9v022_write]: MT9V022 addr 0x%x write error reg 0x%x: write 0x%x read 0x%x\n",
-                   mt9v022_i2c_slave_address, (reg & 0xff), val, rval );
+        mp_printf( &mp_plat_print, " MISMATCH\n" );
+    }
+    else
+    {
+        mp_printf( &mp_plat_print, "\n" );
     }
     return ret;
 }
